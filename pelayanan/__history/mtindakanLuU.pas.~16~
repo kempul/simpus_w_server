@@ -1,0 +1,67 @@
+unit mtindakanLuU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, DBGridEhGrouping,
+  ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, EhLibVCL, GridsEh, DBAxisGridsEh,
+  DBGridEh, dmpelayanan, Vcl.StdCtrls, Vcl.Buttons;
+
+type
+  TForm1_tindakanLU = class(TForm)
+    panel2: TPanel;
+    grid1: TDBGridEh;
+    btnOK: TBitBtn;
+    btnCancel: TBitBtn;
+    btn1: TButton;
+    lblTkp: TLabel;
+    procedure btnCancelClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+    procedure ambil_di_pcare(kd_tkp : string);
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_tindakanLU: TForm1_tindakanLU;
+
+implementation
+
+{$R *.dfm}
+  uses brTindakanU;
+
+procedure TForm1_tindakanLU.ambil_di_pcare(kd_tkp: string);
+var
+    br0 : brTindakan;
+begin
+    br0 := brTindakan.Create;
+    try
+      br0.getTindakanRef(lblTkp.Caption);
+    finally
+      br0.Free;
+    end;
+end;
+
+procedure TForm1_tindakanLU.btnCancelClick(Sender: TObject);
+begin
+dataPelayanan.fdQueryMTindakanLU.Close;
+Close;
+end;
+
+procedure TForm1_tindakanLU.FormShow(Sender: TObject);
+begin
+grid1.SaveColumnsLayoutIni(form111.MyIni);
+ShowMessage('Akan mengambil data tindakan dari PCare... Mohon bersabar...');
+ambil_di_pcare(lblTkp.Caption);
+with dataPelayanan do
+begin
+  fdQueryMTindakanLU.Close;
+  fdQueryMTindakanLU.Active := True;
+  grid1.SetFocus;
+end;
+end;
+
+end.

@@ -1,0 +1,485 @@
+unit brMcuU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils, synautil;
+type
+
+  brMcu = class(bridgeCommon)
+    private
+//    procedure masukkanGetPendaftaranUrut;
+    is_post : Boolean;
+    //no_kartu : string;
+   // no_kunjungan : string;
+    procedure masukkanPostMcu(id : string);
+    procedure masukkanPutMcu(id : string);
+    function masukkanGetRujukan(idxstr, noKunjungan : string) : Boolean;
+    function cek_isPost(idxstr : string) : Boolean;
+    function StrToPostgesDate (strDate : string) : string;
+
+    public
+    aScript : TStringList;
+    function ambilJsonMcu(id : string) : string;
+    function postMcu(id : string) : Boolean;
+    function postKunjunganX(idxstr, dataStr : string) : Boolean;
+    function getRujukan(idxstr : string) : Boolean;
+
+
+    constructor Create;
+    destructor destroy;
+//    property Uri : string;
+  end;
+
+implementation
+     uses SynCommons;
+
+{ brKunjungan }
+
+function brMcu.ambilJsonMcu(id : string): String;
+var sql0, sql1 : string;
+    tglStr, tglPulangStr, noKunjungan, noKartu : string;
+    i : Integer;
+    V1 : Variant;
+begin
+  Result := '';
+  parameter_bridging('MCU', 'POST');
+  V1 :=  _Json(FormatJson);
+
+  sql0 := 'select * from jkn.mcu_view where id = %s and bpjs_kunjungan is not null;';
+  sql1 := Format(sql0,[QuotedStr(id)]);
+  fdQuery.Close;
+  fdQuery.SQL.Clear;
+  fdQuery.SQL.Add(sql1);
+  fdQuery.Open;
+
+  if not fdQuery.IsEmpty then
+  begin
+    //ShowMessage('not empty');
+    DateTimeToString(tglStr, 'DD-MM-YYYY', fdQuery.FieldByName('tanggal').AsDateTime);
+    //DateTimeToString(tglPulangStr, 'DD-MM-YYYY', fdQuery.FieldByName('pulang_tanggal').AsDateTime);
+    if fdQuery.FieldByName('kd_mcu').AsInteger = 0 then is_post := true else
+       begin
+          is_post := False;
+       end;
+
+    V1.kdMCU := fdQuery.FieldByName('kd_mcu').AsInteger;
+    V1.noKunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+    V1.kdProvider := fdQuery.FieldByName('provider_bpjs').AsString;
+    V1.tglPelayanan := tglStr;
+    V1.tekananDarahSistole := fdQuery.FieldByName('tekanan_darah_sistole').AsInteger;
+    V1.tekananDarahDiastole := fdQuery.FieldByName('tekanan_darah_diastole').AsInteger;
+    V1.darahRutinHemo := fdQuery.FieldByName('darah_rutin_hemo').AsFloat;
+    V1.darahRutinLeu := fdQuery.FieldByName('darah_rutin_leu').AsFloat;
+     V1.darahRutinErit := fdQuery.FieldByName('darah_rutin_erit').AsFloat;
+     V1.darahRutinLaju := fdQuery.FieldByName('darah_rutin_laju').AsFloat;
+     V1.darahRutinHema := fdQuery.FieldByName('darah_rutin_hema').AsFloat;
+     V1.darahRutinTrom := fdQuery.FieldByName('darah_rutin_trom').AsFloat;
+     V1.lemakDarahHdl := fdQuery.FieldByName('lemak_darah_hdl').AsFloat;
+     V1.lemakDarahLdl := fdQuery.FieldByName('lemak_darah_ldl').AsFloat;
+     V1.lemakDarahChol := fdQuery.FieldByName('lemak_darah_chol').AsFloat;
+     V1.lemakDarahTrigli := fdQuery.FieldByName('lemak_darah_trigli').AsFloat;
+
+     V1.gulaDarahSewaktu := fdQuery.FieldByName('gula_darah_sewaktu').AsFloat;
+     V1.gulaDarahPuasa := fdQuery.FieldByName('gula_darah_puasa').AsFloat;
+     V1.gulaDarahPostPrandial := fdQuery.FieldByName('gula_darah_post_prandial').AsFloat;
+     V1.gulaDarahHbA1c := fdQuery.FieldByName('gula_darah_hba1c').AsFloat;
+
+     V1.fungsiHatiSGOT := fdQuery.FieldByName('fungsi_hati_sgot').AsFloat;
+     V1.fungsiHatiSGPT := fdQuery.FieldByName('fungsi_hati_sgpt').AsFloat;
+     V1.fungsiHatiGamma := fdQuery.FieldByName('fungsi_hati_gamma').AsFloat;
+     V1.fungsiHatiProtKual := fdQuery.FieldByName('fungsi_hati_prot_kual').AsFloat;
+     V1.fungsiHatiAlbumin := fdQuery.FieldByName('fungsi_hati_albumin').AsFloat;
+
+     V1.fungsiGinjalCrea := fdQuery.FieldByName('fungsi_ginjal_crea').AsFloat;
+     V1.fungsiGinjalUreum := fdQuery.FieldByName('fungsi_ginjal_ureum').AsFloat;
+     V1.fungsiGinjalAsam := fdQuery.FieldByName('fungsi_ginjal_asam').AsFloat;
+
+     V1.fungsiJantungABI := fdQuery.FieldByName('fungsi_jantung_abi').AsFloat;
+
+    {
+     if not fdQuery.FieldByName('kd_provider').IsNull then
+        V1.kdProviderRujukLanjut := fdQuery.FieldByName('kd_provider').AsString;
+}
+     V1.pemeriksaanLain := fdQuery.FieldByName('pemeriksaan_lain').AsString;
+     V1.keterangan := fdQuery.FieldByName('keterangan').AsString;
+
+
+    fdQuery.Close;
+    Result := VariantSaveJSON(V1);
+  end else fdQuery.Close;
+  //FileFromString(Result, 'kunjunganxxx.json');
+  //ShowMessage(Result);
+end;
+
+function brMcu.cek_isPost(idxstr: string): Boolean;
+var
+  sql0, sql1 : string;
+begin
+  parameter_bridging('KUNJUNGAN', 'POST');
+
+  sql0 := 'select * from jkn.kunjungan_view where idxstr = %s;';
+  sql1 := Format(sql0,[QuotedStr(idxstr)]);
+  fdQuery.Close;
+  fdQuery.SQL.Clear;
+  fdQuery.SQL.Add(sql1);
+  fdQuery.Open;
+
+  Result := True;
+  if not fdQuery.IsEmpty then
+  begin
+    //ShowMessage('not empty');
+    if fdQuery.FieldByName('bpjs_kunjungan').IsNull then Result := true else
+       begin
+          Result := False;
+       end;
+    end;
+    fdQuery.Close;
+end;
+
+constructor brMcu.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+  //no_kunjungan := '';
+end;
+
+destructor brMcu.destroy;
+begin
+  aScript.Free;
+  inherited;
+end;
+
+
+function brMcu.getRujukan(idxstr: string): Boolean;
+var sql0, sql1 : string;
+    no_kunjungan : string;
+begin
+Result := False;
+parameter_bridging('RUJUKAN', 'GET');
+sql0 := 'select bpjs_kunjungan from jkn.kunjungan_view where idxstr = %s;';
+sql1 := Format(sql0, [QuotedStr(idxstr)]);
+
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open();
+
+if not fdQuery.IsEmpty then
+begin
+no_kunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+fdQuery.Close;
+//ShowMessage(uri);
+Uri := StringReplace( Uri, '{noKunjungan}', no_kunjungan,  []);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+if Result then
+begin
+  Result := masukkanGetRujukan(idxstr, no_kunjungan);
+end;
+end else fdQuery.Close;
+
+FDConn.Close;
+end;
+
+function brMcu.masukkanGetRujukan(idxstr, noKunjungan: string) : Boolean;
+var
+    tSL : TStringList;
+    dataResp, ppk : Variant;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+
+    noRujukan, tglKunjungan, nokaPst, nmPst, tglLahir, sex, pisa, ketPisa, kdPPK, nmPPK, kdKC, nmKC, nmDati, kdDati, kdKR, nmKR,
+    kdPoli, nmPoli, kdDiag1, nmDiag1, kdDiag2, nmDiag2, kdDiag3, nmDiag3, kdDokter, nmDokter, nmTacc, alasanTacc,
+    catatan, infoDenda, catatanRujuk, tglEstRujuk, tglAkhirRujuk, jadwal : string;
+begin
+  sql0 := 'INSERT INTO jkn.rujukan ("idxstr", "noRujukan", "tglKunjungan", "nokaPst", "nmPst", "tglLahir", "sex", "pisa", "ketPisa", "kdPPK", "nmPPK", "kdKC", "nmKC", "nmDati", "kdDati", "kdKR", "nmKR", ' +
+          '"kdPoli", "nmPoli", "kdDiag1", "nmDiag1", "kdDiag2", "nmDiag2", "kdDiag3", "nmDiag3", "kdDokter", "nmDokter", "nmTacc", "alasanTacc", "catatan", "infoDenda", "catatanRujuk", "tglEstRujuk", "tglAkhirRujuk", "jadwal") ' +
+          'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);';
+
+  Result := logRest('GET', 'RUJUKAN', tsResponse.Text);
+  if Result then
+  begin
+  tsL := TStringList.Create;
+
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+   //ShowMessage(tsResponse.Text);
+ //   NoKunjungan := dataResp.response.message;
+    sqlDel0 := 'delete from jkn.rujukan where "idxstr" = %s;';
+    sqlDel1 := Format(sqlDel0, [QuotedStr(idxstr)]);
+    tSl.Add(sqlDel1);
+
+    noRujukan := dataResp.response.noRujukan;
+    tglKunjungan := StrToPostgesDate(dataResp.response.tglKunjungan);
+    nokaPst := dataResp.response.nokaPst;
+    nmPst := dataResp.response.nmPst;
+
+    tglLahir := StrToPostgesDate(dataResp.response.tglLahir);
+    pisa := dataResp.response.pisa;
+    ketPisa := dataResp.response.ketPisa;
+    sex := dataResp.response.sex;
+
+    if VarIsEmptyOrNull(dataResp.response.catatan) then catatan := '-' else
+           catatan := dataResp.response.catatan;
+
+    if VarIsEmptyOrNull(dataResp.response.infoDenda) then infoDenda := '-' else
+           infoDenda := dataResp.response.infoDenda;
+
+    if VarIsEmptyOrNull(dataResp.response.catatanRujuk) then catatanRujuk := '-' else
+           catatanRujuk := dataResp.response.catatanRujuk;
+
+    tglEstRujuk := StrToPostgesDate(dataResp.response.tglEstRujuk);
+    tglAkhirRujuk := StrToPostgesDate(dataResp.response.tglAkhirRujuk);
+
+    if VarIsEmptyOrNull(dataResp.response.jadwal) then jadwal := '-' else
+           jadwal := dataResp.response.jadwal;
+
+    kdPoli := dataResp.response.poli.kdPoli;
+    nmPoli := dataResp.response.poli.nmPoli;
+
+    if VarIsEmptyOrNull(dataResp.response.diag1) then
+    begin
+      kdDiag1 := 'null';
+      nmDiag1 := 'null';
+    end else
+    begin
+      kdDiag1 := QuotedStr(dataResp.response.diag1.kdDiag);
+      nmDiag1 := QuotedStr(dataResp.response.diag1.nmDiag);
+    end;
+
+    if VarIsEmptyOrNull(dataResp.response.diag2) then
+    begin
+      kdDiag2 := 'null';
+      nmDiag2 := 'null';
+    end else
+    begin
+      kdDiag2 := QuotedStr(dataResp.response.diag2.kdDiag);
+      nmDiag2 := QuotedStr(dataResp.response.diag2.nmDiag);
+    end;
+
+    if VarIsEmptyOrNull(dataResp.response.diag3) then
+    begin
+      kdDiag3 := 'null';
+      nmDiag3 := 'null';
+    end else
+    begin
+      kdDiag3 := QuotedStr(dataResp.response.diag3.kdDiag);
+      nmDiag3 := QuotedStr(dataResp.response.diag3.nmDiag);
+    end;
+
+    if VarIsEmptyOrNull(dataResp.response.dokter) then
+    begin
+      kdDokter := 'null';
+      nmDokter := 'null';
+    end else
+    begin
+      kdDokter := QuotedStr(dataResp.response.dokter.kdDokter);
+      nmDokter := QuotedStr(dataResp.response.dokter.nmDokter);
+    end;
+
+    if VarIsEmptyOrNull(dataResp.response.tacc) then
+    begin
+      nmTacc := 'null';
+      alasanTacc := 'null';
+    end else
+    begin
+      if VarIsEmptyOrNull(dataResp.response.tacc.nmTacc) then nmTacc := 'null' else
+            nmTacc := QuotedStr(dataResp.response.tacc.nmTacc);
+      if VarIsEmptyOrNull(dataResp.response.tacc.alasanTacc) then alasanTacc := 'null'
+            else  alasanTacc := QuotedStr(dataResp.response.tacc.alasanTacc);
+    end;
+
+    ppk := dataResp.response.ppk;
+    _Unique(ppk);
+
+    kdPPK := ppk.kdPPK;
+    nmPPK := ppk.nmPPK;
+    kdKC := ppk.kc.kdKC;
+    nmKC := ppk.kc.nmKC;
+    nmDati := ppk.kc.dati.nmDati;
+    kdDati := ppk.kc.dati.kdDati;
+    kdKR := ppk.kc.kdKR.kdKR;
+    nmKR := ppk.kc.kdKR.nmKR;
+
+    sql1 := Format(sql0, [
+            QuotedStr(idxstr),
+            QuotedStr(noRujukan),
+            QuotedStr(tglKunjungan),
+            QuotedStr(nokaPst),
+            QuotedStr(nmPst),
+            QuotedStr(tglLahir),
+            QuotedStr(sex),
+            QuotedStr(pisa),
+            QuotedStr(ketPisa),
+            QuotedStr(kdPPK),
+            QuotedStr(nmPPK),
+            QuotedStr(kdKC),
+            QuotedStr(nmKC),
+            QuotedStr(nmDati),
+            QuotedStr(kdDati),
+            QuotedStr(kdKR),
+            QuotedStr(nmKR),
+            QuotedStr(kdPoli),
+            QuotedStr(nmPoli),
+            kdDiag1,
+            nmDiag1,
+            kdDiag2,
+            nmDiag2,
+            kdDiag3,
+            nmDiag3,
+            kdDokter,
+            nmDokter,
+            nmTacc,
+            alasanTacc,
+            QuotedStr(catatan),
+            QuotedStr(infoDenda),
+            QuotedStr(catatanRujuk),
+            QuotedStr(tglEstRujuk),
+            QuotedStr(tglAkhirRujuk),
+            QuotedStr(jadwal)
+            ]);
+
+    tSL.Add(sql1);
+    aScript.Assign(tSL);
+    jalankanScript(tSl);
+
+   finally
+     FreeAndNil(tSl);
+  end;
+
+  end;
+end;
+
+procedure brMcu.masukkanPostMcu(id : string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    kdMcu : integer;
+    noKunjungan : string;
+begin
+//       ShowMessage(tsResponse.Text);
+   if logRest('POST', 'MCU', tsResponse.Text) then
+   begin
+  tsL := TStringList.Create;
+
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+  // ShowMessage(tsResponse.Text);
+    kdMcu := dataResp.response.message;
+    sqlDel0 := 'update jkn.bpjs_mcu set kd_mcu = %s where id = %s;';
+    sqlDel1 := Format(sqlDel0, [intToStr(kdMcu), quotedStr(id)]);
+    tSl.Add(sqlDel1);
+    jalankanScript(tSl);
+
+   finally
+     FreeAndNil(tSl);
+  end;
+   end;
+
+end;
+
+procedure brMcu.masukkanPutMcu(id : string);
+begin
+  logRest('PUT', 'MCU', tsResponse.Text);
+end;
+
+function brMcu.postMcu(id : string): Boolean;
+var
+    mStream : TMemoryStream;
+    js : string;
+
+begin
+
+js := ambilJsonMcu(id);
+
+if Length(js) > 10 then
+begin
+
+mStream := TMemoryStream.Create;
+try
+Result := False;
+WriteStrToStream(mStream, js);
+if  is_post then
+begin
+   //Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+  Result:= httpPost(Uri, mStream);
+  jejakIdxstr := id;
+  FormatJson := js;
+  if Result then masukkanPostMcu(id);
+end else
+begin
+  //Uri := ReplaceStr(Uri, '{nokartu}', no_kartu);
+  Result := httpPut(Uri, mStream);
+  FormatJson := js;
+  if Result then masukkanPutMcu(id);
+end;
+
+finally
+  mStream.Free;
+end;
+
+end;
+FDConn.Close;
+end;
+
+
+
+function brMcu.postKunjunganX(idxstr, dataStr: string): Boolean;
+var
+    mStream : TMemoryStream;
+
+begin
+//js := ambilJsonKunjungan(idxstr);
+
+is_post := cek_isPost(idxstr);
+
+if Length(dataStr) > 10 then
+begin
+
+mStream := TMemoryStream.Create;
+try
+Result := False;
+WriteStrToStream(mStream, dataStr);
+if  is_post then
+begin
+   //Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+  Result:= httpPost(Uri, mStream);
+  jejakIdxstr := idxstr;
+  FormatJson := dataStr;
+  if Result then masukkanPostMcu(idxstr);
+end else
+begin
+  //Uri := ReplaceStr(Uri, '{nokartu}', no_kartu);
+  Result := httpPut(Uri, mStream);
+  jejakIdxstr := idxstr;
+  FormatJson := dataStr;
+  if Result then masukkanPutMcu(idxstr);
+end;
+
+finally
+  mStream.Free;
+end;
+
+end;
+FDConn.Close;
+end;
+
+function brMcu.StrToPostgesDate(strDate: string): string;
+var
+  formatAsli : Char;
+  myDate : TDateTime;
+  myDateStr : string;
+begin
+  formatAsli := FormatSettings.DateSeparator;
+  FormatSettings.DateSeparator := '-';
+  myDate := StrToDate(strDate);
+  DateTimeToString(myDateStr, 'YYYY-MM-DD', myDate);
+  FormatSettings.DateSeparator := formatAsli;
+  Result := myDateStr;
+
+end;
+
+end.

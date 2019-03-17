@@ -1,0 +1,283 @@
+object dataMaster: TdataMaster
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  Height = 530
+  Width = 729
+  object FDConnection1: TFDConnection
+    ConnectionName = 'simpuspg'
+    Params.Strings = (
+      'User_Name=dkkuser'
+      'Password=nganggodkk'
+      'Database=simpusclientdb'
+      'Server=localhost'
+      'Pooled=True'
+      'DriverID=PG')
+    LoginPrompt = False
+    Transaction = fdTransaction1
+    Left = 16
+    Top = 16
+  end
+  object dsDokter: TJvDataSource
+    DataSet = fdQueryDokter
+    Left = 84
+    Top = 16
+  end
+  object dsKelasTempatTidur: TJvDataSource
+    DataSet = fdQueryKelasTt
+    Left = 152
+    Top = 16
+  end
+  object fdTransaction1: TFDTransaction
+    Connection = FDConnection1
+    Left = 220
+    Top = 16
+  end
+  object fdpgdriver1: TFDPhysPgDriverLink
+    Left = 288
+    Top = 16
+  end
+  object fdCmd1: TFDCommand
+    Connection = FDConnection1
+    Transaction = fdTransaction1
+    Left = 356
+    Top = 16
+  end
+  object fdQueryPemakai: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.pemakai order by upper(nama) ')
+    Left = 424
+    Top = 16
+  end
+  object dspemakai: TJvDataSource
+    DataSet = fdQueryPemakai
+    Left = 492
+    Top = 16
+  end
+  object fdQueryPuskesmas: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.puskesmas order by upper(nama)')
+    Left = 560
+    Top = 16
+  end
+  object dsPuskesmas: TJvDataSource
+    DataSet = fdQueryPuskesmas
+    Left = 628
+    Top = 16
+  end
+  object fdQueryDokter: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.dokter order by upper(nama)')
+    Left = 16
+    Top = 84
+  end
+  object fdQueryMasterPoli: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.m_poli order by upper(poli)')
+    Left = 84
+    Top = 84
+  end
+  object dsMasterPoli: TJvDataSource
+    DataSet = fdQueryMasterPoli
+    Left = 152
+    Top = 84
+  end
+  object fdQueryMasterBiaya: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.m_pasien_biaya order by upper(biaya)')
+    Left = 220
+    Top = 84
+  end
+  object dsMasterBeaya: TJvDataSource
+    DataSet = fdQueryMasterBiaya
+    Left = 288
+    Top = 84
+  end
+  object fdQueryBuka: TFDQuery
+    Connection = FDConnection1
+    Left = 356
+    Top = 84
+  end
+  object fdQueryMasterIcdx: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select * from jkn.m_diagnosis where cast(terakhir as date) = cur' +
+        'rent_date order by kd_diag')
+    Left = 424
+    Top = 84
+  end
+  object dsICDX: TJvDataSource
+    DataSet = fdQueryMasterIcdx
+    Left = 492
+    Top = 84
+  end
+  object fdQueryKelasTt: TFDQuery
+    Connection = FDConnection1
+    Transaction = fdTransaction1
+    SQL.Strings = (
+      'select * from simpus.m_kelas order by idx')
+    Left = 560
+    Top = 84
+  end
+  object fdScript2: TFDScript
+    SQLScripts = <>
+    Connection = FDConnection1
+    Params = <>
+    Macros = <>
+    Left = 628
+    Top = 84
+  end
+  object fdQueryInstalasi: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.m_instalasi order by upper(instalasi)')
+    Left = 16
+    Top = 152
+  end
+  object dsInstalasi: TJvDataSource
+    DataSet = fdQueryInstalasi
+    Left = 84
+    Top = 152
+  end
+  object fdQueryPuskesmasUnique: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select kd_cabang from simpus.puskesmas where adl_aktif = 1 limit' +
+        ' 1')
+    Left = 152
+    Top = 152
+  end
+  object fdQueryMasterImunisasi: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.m_imunisasi order by idx')
+    Left = 220
+    Top = 152
+  end
+  object dsMasterImunisasi: TJvDataSource
+    DataSet = fdQueryMasterImunisasi
+    Left = 288
+    Top = 152
+  end
+  object fdQueryMasterPoned: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.m_poned order by idx')
+    Left = 356
+    Top = 152
+  end
+  object dsMasterPONED: TJvDataSource
+    DataSet = fdQueryMasterPoned
+    Left = 424
+    Top = 152
+  end
+  object fdQueryKamar: TFDQuery
+    BeforeDelete = fdQueryKamarBeforeDelete
+    OnNewRecord = fdQueryKamarNewRecord
+    MasterSource = dsKelasTempatTidur
+    MasterFields = 'kelas'
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select * from simpus.kamar_ri where kelas = :kelas order by uppe' +
+        'r(nama_kamar)')
+    Left = 492
+    Top = 152
+    ParamData = <
+      item
+        Name = 'KELAS'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsKamar: TJvDataSource
+    DataSet = fdQueryKamar
+    Left = 560
+    Top = 152
+  end
+  object fdQueryKamarTerakhir: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select id from simpus.kamar_ri '
+      'where '
+      'nama_kamar = :kamar')
+    Left = 628
+    Top = 152
+    ParamData = <
+      item
+        Name = 'KAMAR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryRsRujukan: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.provider order by upper(nm_provider)')
+    Left = 16
+    Top = 220
+  end
+  object dsRsRujukan: TJvDataSource
+    DataSet = fdQueryRsRujukan
+    Left = 84
+    Top = 220
+  end
+  object fdQueryPoliRujukan: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.poli_rujukan order by upper(nmpoli)')
+    Left = 152
+    Top = 220
+  end
+  object dsPoliRujukan: TJvDataSource
+    DataSet = fdQueryPoliRujukan
+    Left = 220
+    Top = 220
+  end
+  object fdQueryMasterTindakan: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.m_tindakan order by upper(nm_tindakan)')
+    Left = 288
+    Top = 220
+  end
+  object dsMasterTindakan: TJvDataSource
+    DataSet = fdQueryMasterTindakan
+    Left = 356
+    Top = 220
+  end
+  object fdQueryMasterObat: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select * from farmasi.m_obat where cast(terakhir as date) = curr' +
+        'ent_date order by upper(nm_obat)')
+    Left = 424
+    Top = 220
+  end
+  object dsMasterObat: TJvDataSource
+    DataSet = fdQueryMasterObat
+    Left = 492
+    Top = 220
+  end
+  object fdQueryMasterLab: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from lab.m_lab order by upper(jenis_pemeriksaan)')
+    Left = 552
+    Top = 220
+  end
+  object dsMasterLab: TJvDataSource
+    DataSet = fdQueryMasterLab
+    Left = 620
+    Top = 220
+  end
+end

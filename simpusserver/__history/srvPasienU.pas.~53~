@@ -1,0 +1,332 @@
+unit srvPasienU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils, System.DateUtils;
+type
+
+  srvPasien = class(srvCommon)
+    private
+    function ambilJsonPost(puskesmas: Integer; tanggal: TDate) : string;
+    function ambilJsonPostTunggal(idxstr: string) : string;
+    public
+    aScript : TStringList;
+    function postPasien(puskesmas: Integer; tanggal: TDate): Boolean;
+    function postPasienTunggal(idxstr: string): Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkanpostPasien(idxstr: string);
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot, synautil;
+{ srvPasien }
+
+function srvPasien.ambilJsonPost(puskesmas: Integer; tanggal: TDate): string;
+var sql0, sql1, tglStr, tglParam : string;
+    V0 , V1, V2, list : Variant;
+begin
+Result := '{"i": 0 }';
+parameter_bridging('nik', 'post');
+DateTimeToString(tglParam, 'yyyy-MM-dd', tanggal);
+Result := '';
+sql0 := 'select * from dinkesserver.nik_view where puskesmas = %s and tanggal = %s';
+sql1 := Format(sql0, [intToStr(puskesmas), QuotedStr(tglParam)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open();
+
+if fdQuery.IsEmpty then
+begin
+  fdQuery.Close;
+  Exit;
+end;
+
+  fdQuery.First;
+  list := _Arr([]);
+
+
+  while not fdQuery.Eof do
+  begin
+  V1 := _Json(FormatJson);
+  DateTimeToString(tglStr, 'yyyy-MM-dd', fdQuery.FieldByName('tgl_lahir').AsDateTime);
+
+//ShowMessage(VariantSaveJSON(V1));
+  V1.nik := fdQuery.FieldByName('nik').AsString;
+  V1.namaLengkap := fdQuery.FieldByName('nama_lengkap').AsString;
+  V1.namaProp := fdQuery.FieldByName('nama_prop').AsString;
+  V1.namaKab := fdQuery.FieldByName('nama_kab').AsString;
+  V1.namaKec := fdQuery.FieldByName('nama_kec').AsString;
+  V1.namaKel := fdQuery.FieldByName('nama_kel').AsString;
+  V1.tmptLahir := fdQuery.FieldByName('tmpt_lahir').AsString;
+  V1.tglLahir := tglStr;
+  V1.jenisKelamin := fdQuery.FieldByName('jenis_kelamin').AsString;
+  V1.golDrh := fdQuery.FieldByName('gol_drh').AsString;
+  V1.alamat := fdQuery.FieldByName('alamat').AsString;
+  V1.rt := fdQuery.FieldByName('rt').AsString;
+  V1.rw := fdQuery.FieldByName('rw').AsString;
+  V1.agama := fdQuery.FieldByName('agama').AsString;
+  V1.pekerjaan := fdQuery.FieldByName('pekerjaan').AsString;
+  V1.namaIbu := fdQuery.FieldByName('nama_ibu').AsString;
+  V1.namaAyah := fdQuery.FieldByName('nama_ayah').AsString;
+  V1.hubunganKeluarga := fdQuery.FieldByName('hubungan_keluarga').AsString;
+  V1.pendidikan := fdQuery.FieldByName('pendidikan').AsString;
+  V1.nomorKk := fdQuery.FieldByName('nomor_kk').AsString;
+  V1.statusKawin := fdQuery.FieldByName('status_kawin').AsString;
+//  V1.noAktaLahir := fdQuery.FieldByName('no_akta_lahir').AsString;
+//  V1.namaKepalaKeluarga := fdQuery.FieldByName('nama_kepala_keluarga').AsString;
+  V1.autoMr := fdQuery.FieldByName('auto_mr').AsString;
+  V1.mr := fdQuery.FieldByName('mr').AsString;
+  V1.idx := fdQuery.FieldByName('idx').AsInteger;
+  V1.kelompok := fdQuery.FieldByName('kelompok').AsString;
+//  V1.biaya := fdQuery.FieldByName('biaya').AsString;
+  V1.kartuBpjs := fdQuery.FieldByName('kartu_bpjs').AsString;
+//  V1.lama := fdQuery.FieldByName('lama').AsInteger;
+//  V1.hp := fdQuery.FieldByName('hp').AsString;
+//  V1.adlLuar := fdQuery.FieldByName('adl_luar').AsInteger;
+  V1.puskesmas := fdQuery.FieldByName('puskesmas').AsInteger;
+//  V1.kdProvider := fdQuery.FieldByName('kd_provider').AsString;
+  V1.noProp := fdQuery.FieldByName('no_prop').AsInteger;
+  V1.noKab := fdQuery.FieldByName('no_kab').AsInteger;
+  V1.noKec := fdQuery.FieldByName('no_kec').AsInteger;
+  V1.noKel := fdQuery.FieldByName('no_kel').AsInteger;
+  V1.idNe := fdQuery.FieldByName('id').AsInteger;
+  V1.idxstr := fdQuery.FieldByName('idxstr').AsString;
+  V1.tanggalServer := tglParam;
+
+  list.add(V1);
+  fdQuery.Next;
+  end;
+
+  V0 := _Obj(['list', list]);
+  fdQuery.Close;
+  Result := VariantSaveJSON(V0);
+//ShowMessage(Result);
+end;
+
+function srvPasien.ambilJsonPostTunggal(idxstr: string): string;
+var sql0, sql1, tglStr : string;
+    V0 , V1, V2, list : Variant;
+begin
+Result := '{"i": 0 }';
+parameter_bridging('nik', 'post');
+//DateTimeToString(tglParam, 'yyyy-MM-dd', tanggal);
+Result := '';
+sql0 := 'select * from capil.capil_nik where idxstr = %s';
+sql1 := Format(sql0, [QuotedStr(idxstr)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open();
+
+if fdQuery.IsEmpty then
+begin
+  fdQuery.Close;
+  Exit;
+end;
+
+  fdQuery.First;
+  list := _Arr([]);
+
+
+  while not fdQuery.Eof do
+  begin
+  V1 := _Json(FormatJson);
+  DateTimeToString(tglStr, 'yyyy-MM-dd', fdQuery.FieldByName('tgl_lahir').AsDateTime);
+//  DateTimeToString(tglParam, 'yyyy-MM-dd', fdQuery.FieldByName('last_updated').AsDateTime);
+
+//ShowMessage(VariantSaveJSON(V1));
+  V1.nik := fdQuery.FieldByName('nik').AsString;
+  V1.namaLengkap := fdQuery.FieldByName('nama_lengkap').AsString;
+  V1.namaProp := fdQuery.FieldByName('nama_prop').AsString;
+  V1.namaKab := fdQuery.FieldByName('nama_kab').AsString;
+  V1.namaKec := fdQuery.FieldByName('nama_kec').AsString;
+  V1.namaKel := fdQuery.FieldByName('nama_kel').AsString;
+  V1.tmptLahir := fdQuery.FieldByName('tmpt_lahir').AsString;
+  V1.tglLahir := tglStr;
+  V1.jenisKelamin := fdQuery.FieldByName('jenis_kelamin').AsString;
+  V1.golDrh := fdQuery.FieldByName('gol_drh').AsString;
+  V1.alamat := fdQuery.FieldByName('alamat').AsString;
+  V1.rt := fdQuery.FieldByName('rt').AsString;
+  V1.rw := fdQuery.FieldByName('rw').AsString;
+  V1.agama := fdQuery.FieldByName('agama').AsString;
+  V1.pekerjaan := fdQuery.FieldByName('pekerjaan').AsString;
+  V1.namaIbu := fdQuery.FieldByName('nama_ibu').AsString;
+  V1.namaAyah := fdQuery.FieldByName('nama_ayah').AsString;
+  V1.hubunganKeluarga := fdQuery.FieldByName('hubungan_keluarga').AsString;
+  V1.pendidikan := fdQuery.FieldByName('pendidikan').AsString;
+  V1.nomorKk := fdQuery.FieldByName('nomor_kk').AsString;
+  V1.statusKawin := fdQuery.FieldByName('status_kawin').AsString;
+//  V1.noAktaLahir := fdQuery.FieldByName('no_akta_lahir').AsString;
+//  V1.namaKepalaKeluarga := fdQuery.FieldByName('nama_kepala_keluarga').AsString;
+  V1.autoMr := fdQuery.FieldByName('auto_mr').AsString;
+  V1.mr := fdQuery.FieldByName('mr').AsString;
+  V1.idx := fdQuery.FieldByName('idx').AsInteger;
+  V1.kelompok := fdQuery.FieldByName('kelompok').AsString;
+//  V1.biaya := fdQuery.FieldByName('biaya').AsString;
+  V1.kartuBpjs := fdQuery.FieldByName('kartu_bpjs').AsString;
+//  V1.lama := fdQuery.FieldByName('lama').AsInteger;
+//  V1.hp := fdQuery.FieldByName('hp').AsString;
+//  V1.adlLuar := fdQuery.FieldByName('adl_luar').AsInteger;
+  V1.puskesmas := fdQuery.FieldByName('puskesmas').AsInteger;
+//  V1.kdProvider := fdQuery.FieldByName('kd_provider').AsString;
+  V1.noProp := fdQuery.FieldByName('no_prop').AsInteger;
+  V1.noKab := fdQuery.FieldByName('no_kab').AsInteger;
+  V1.noKec := fdQuery.FieldByName('no_kec').AsInteger;
+  V1.noKel := fdQuery.FieldByName('no_kel').AsInteger;
+  V1.idNe := fdQuery.FieldByName('id').AsInteger;
+  V1.idxstr := fdQuery.FieldByName('idxstr').AsString;
+//  V1.tanggalServer := tglParam;
+
+  list.add(V1);
+  fdQuery.Next;
+  end;
+
+  V0 := _Obj(['list', list]);
+  fdQuery.Close;
+  Result := VariantSaveJSON(V0);
+//ShowMessage(Result);
+end;
+
+constructor srvPasien.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvPasien.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvPasien.postPasien(puskesmas: Integer; tanggal: TDate): Boolean;
+var
+    mStream : TMemoryStream;
+    js, idxstr, dataStr, jejakIdxstr : string;
+    V1, V2 : Variant;
+    i : Integer;
+
+begin
+Result := False;
+
+js := ambilJsonPost(puskesmas, tanggal);
+if Length(js) > 30 then
+begin
+V1 := _Json(js);
+mStream := TMemoryStream.Create;
+if V1.list._Count > 0 then
+begin
+   try
+      for I := 0 to V1.list._count - 1 do
+      begin
+        VarClear(V2);
+        V2:= V1.List.Value(i);
+        _Unique(V2);
+        idxstr := V2.idxstr;
+        dataStr := VariantSaveJSON(V2);
+        FormatJson := dataStr;
+        mStream.Clear;
+        WriteStrToStream(mStream, FormatJson);
+        //ts.Write(dataStr[1], Length(dataStr));
+
+        Result := httpPost(Uri, mStream);
+        jejakIdxstr := idxstr;
+        if Result then masukkanpostPasien(idxstr);
+        //ShowMessage(V2.tanggalServer);
+        //FileFromString(dataStr, 'tes_obat'+ IntToStr(i)+'.json');
+      end;
+   finally
+
+      mStream.Free;
+   end;
+end;
+end;
+
+FDConn.Close;
+
+end;
+
+
+
+function srvPasien.postPasienTunggal(idxstr: string): Boolean;
+var
+    mStream : TMemoryStream;
+    js, dataStr, jejakIdxstr : string;
+    V1, V2 : Variant;
+    i : Integer;
+
+    tanggal : TDate;
+    myFormatSettings : TFormatSettings;
+
+begin
+myFormatSettings.ShortDateFormat:= 'yyyy-mm-dd';
+Result := False;
+
+
+js := ambilJsonPostTunggal(idxstr);
+if Length(js) > 30 then
+begin
+V1 := _Json(js);
+mStream := TMemoryStream.Create;
+if V1.list._Count > 0 then
+begin
+   try
+      for I := 0 to V1.list._count - 1 do
+      begin
+        VarClear(V2);
+        V2:= V1.List.Value(i);
+        _Unique(V2);
+        //idxstr := V2.idxstr;
+        tanggal := StrToDateTime(V2.tanggalServer, myFormatSettings);
+        dataStr := VariantSaveJSON(V2);
+        FormatJson := dataStr;
+        mStream.Clear;
+        WriteStrToStream(mStream, FormatJson);
+        //ts.Write(dataStr[1], Length(dataStr));
+
+        Result := httpPost(Uri, mStream);
+        jejakIdxstr := idxstr;
+        if Result then masukkanpostPasien(idxstr);
+        //ShowMessage(V2.tanggalServer);
+        //FileFromString(dataStr, 'tes_obat'+ IntToStr(i)+'.json');
+      end;
+   finally
+
+      mStream.Free;
+   end;
+end;
+end;
+
+FDConn.Close;
+
+end;
+
+procedure srvPasien.masukkanpostPasien(idxstr: string);
+var
+    tSl : TStringList;
+    sqlDel0, sqlDel1 : string;
+    tglStr : string;
+    v1 : Variant;
+begin
+//       ShowMessage('awal masukkan get');
+
+   v1 := _Json(tsResponse.Text);
+   tglStr := v1.tanggalServer;
+//   DateTimeToString(tglStr, 'yyyy-MM-dd', tanggal);
+   sqlDel0 := 'update capil.capil_nik set tanggal_server = %s where idxstr = %s;';
+   sqlDel1 := Format(sqlDel0, [QuotedStr(tglStr), QuotedStr(idxstr)]);
+//   sql0 := 'insert into simpus.tt(id, puskesmas, jml, tanggal_ubah) values(%s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   try
+    tSl.Add(sqlDel1);
+    aScript.Assign(tSl);
+    jalankanScript(tSl);
+   finally
+    FreeAndNil(tSl);
+   end;
+end;
+
+end.

@@ -1,0 +1,72 @@
+unit dmBPJSMaster;
+
+interface
+
+uses
+  SysUtils, Classes, JvDataSource, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Comp.Client,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.Phys.PG, Data.DB;
+
+type
+  TdataMasterBPJS = class(TDataModule)
+    dsICDX: TJvDataSource;
+    dsDokter: TJvDataSource;
+    dsObat: TJvDataSource;
+    dsPoli: TJvDataSource;
+    dsPoliRujukan: TJvDataSource;
+    dsProvider: TJvDataSource;
+    dsTindakan: TJvDataSource;
+    dsKesadaran: TJvDataSource;
+    dsPulang: TJvDataSource;
+    FDConnection1: TFDConnection;
+    fdTransaction1: TFDTransaction;
+    fdpgdriver1: TFDPhysPgDriverLink;
+    fdCmd1: TFDCommand;
+    procedure DataModuleCreate(Sender: TObject);
+  private
+    { Private declarations }
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getpg;
+  public
+    { Public declarations }
+  end;
+
+var
+  dataMasterBPJS: TdataMasterBPJS;
+
+implementation
+
+uses kunciu;
+
+{$R *.dfm}
+
+{ TDataModule1 }
+
+procedure TdataMasterBPJS.DataModuleCreate(Sender: TObject);
+begin
+getpg;
+end;
+
+procedure TdataMasterBPJS.getpg;
+begin
+if conn1.Connected then conn1.Connected := false;
+
+//conn1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+conn1.Server := pghost;
+conn1.Port := StrToInt(pgport);
+conn1.Database := pgdb;
+conn1.Username := pguser;
+conn1.Password := pgpasswd;
+
+
+end;
+
+end.

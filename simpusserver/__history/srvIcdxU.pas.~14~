@@ -1,0 +1,136 @@
+unit srvIcdxU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  srvIcdx = class(srvCommon)
+    private
+    function ambilJsonPost(kode : string) : string;
+    public
+    aScript : TStringList;
+    function postIcdx(kode : string): Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkanpostIcdx;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot, synautil;
+{ srvIcdx }
+
+function srvIcdx.ambilJsonPost(kode: string): string;
+var sql0, sql1, tglStr, tanggalMasukStr, tanggalPulangStr : string;
+    V1 : Variant;
+begin
+DateTimeToString(tglStr, 'yyyy-MM-dd', tanggal);
+parameter_bridging('icdx', 'post');
+
+
+V1 := _Json(FormatJson);
+
+Result := '';
+sql0 := 'select * from dinkesserver.icdx_view where kd_diag = %s and tanggal_diagnosa::date = %s limit 1';
+sql1 := Format(sql0, [QuotedStr(kode), QuotedStr(tglStr)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open();
+
+if fdQuery.IsEmpty then
+begin
+  fdQuery.Close;
+  Exit;
+end;
+
+//ShowMessage(VariantSaveJSON(V1));
+  V1.kdDiag := kode;
+  V1.nmDiag := fdQuery.FieldByName('nm_diag').AsString;
+  V1.nonSpesialis := fdQuery.FieldByName('non_spesialis').AsBoolean;
+
+  fdQuery.Close;
+   Result := VariantSaveJSON(V1);
+
+end;
+
+constructor srvIcdx.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvIcdx.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvIcdx.postIcdx(kode : string): Boolean;
+var
+    mStream : TMemoryStream;
+    js : string;
+
+begin
+Result := False;
+
+js := ambilJsonPost(kode);
+if Length(js) > 10 then
+begin
+mStream := TMemoryStream.Create;
+WriteStrToStream(mStream, js);
+
+//Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+Result:= httpPost(Uri, mStream);
+mStream.Free;
+//if Result then masukkanpostIcdx;
+end;
+FDConn.Close;
+end;
+
+
+
+procedure srvIcdx.masukkanpostIcdx;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlx0, sqlx1 : string;
+    sqlDel0, sql0, sql1 : string;
+    dId, dPuskesmas, dJml, dTgl : string;
+    poliSakit : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sqlDel0 := 'delete from simpus.tt where id = 0;';
+//   sql0 := 'insert into simpus.tt(id, puskesmas, jml, tanggal_ubah) values(%s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   tSl.Add(sqlDel0);
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+   sql1 := jsonToSql('simpus.tt', dataResp);
+   sql1 := ReplaceStr(sql1, 'tanggalUbah', 'tanggal_ubah');
+   tSl.Add(sql1);
+// ShowMessage(tsResponse.Text);
+
+ {
+   for I := 0 to dataResp._count - 1 do
+     begin
+       dBiaya := dataResp.Value(i).biaya;
+       dIdRpt := dataResp.Value(i).idRpt;
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+
+       sql1 := Format(sql0, [QuotedStr(dBiaya), QuotedStr(dIdRpt)]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+  }
+   finally
+     aScript.Assign(tSl);
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+
+end.

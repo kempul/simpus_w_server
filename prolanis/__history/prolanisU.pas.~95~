@@ -1,0 +1,381 @@
+unit prolanisU;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, DynVarsEh,
+  ComCtrls, JvExComCtrls, JvComCtrls, JvBaseDlg, JvProgressDialog, EhLibVCL,
+  brDokterU, JvDBCombobox, JvDBLookup, JvToolEdit;
+
+type
+  TForm1_Prolanis = class(TForm)
+    panelUtama: TJvPanel;
+    panelHeader: TJvPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    JvLabel2: TJvLabel;
+    JvBevel1: TJvBevel;
+    panelMenu: TJvPanel;
+    btn_close: TJvTransparentButton;
+    btn_dokterAmbil: TJvTransparentButton;
+    btn_cetak: TJvTransparentButton;
+    btn_jaminan: TJvTransparentButton;
+    btn_pakandikandang: TJvTransparentButton;
+    JvFormStorage1: TJvFormStorage;
+    frxDBDataset1: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    pb1: TJvProgressDialog;
+    pageControl1: TJvPageControl;
+    tsKelompok: TTabSheet;
+    tsKegiatan: TTabSheet;
+    tsPeserta: TTabSheet;
+    panel1: TJvPanel;
+    cbbLUProgram: TDBLookupComboBox;
+    dbedit1nm_program: TDBEdit;
+    btn1: TButton;
+    pnl1: TPanel;
+    grid1Kelompok: TDBGridEh;
+    dbnav1: TJvDBNavigator;
+    panel01: TJvPanel;
+    Button1: TButton;
+    panel02: TPanel;
+    grid1Kegiatan: TDBGridEh;
+    JvDBNavigator1: TJvDBNavigator;
+    pnl0: TPanel;
+    panelDasar: TPanel;
+    panel4: TPanel;
+    panel5: TJvPanel;
+    btn2: TButton;
+    panel6: TPanel;
+    grid1Peserta: TDBGridEh;
+    dbnav2: TJvDBNavigator;
+    lbl1: TLabel;
+    Label1: TLabel;
+    dbtxtkegiatan: TDBText;
+    dbtxtedu_id: TDBText;
+    btnKegiatanAdd: TButton;
+    btn3: TButton;
+    btn4: TButton;
+    procedure btn_closeClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure nav1Click(Sender: TObject; Button: TNavigateBtn);
+    procedure btn_dokterAmbilClick(Sender: TObject);
+    procedure pb1Progress(Sender: TObject; var AContinue: Boolean);
+    procedure btn1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure pageControl1Change(Sender: TObject);
+    procedure btn2Click(Sender: TObject);
+    procedure btnKegiatanAddClick(Sender: TObject);
+    procedure btn4Click(Sender: TObject);
+    procedure dbnav2BeforeAction(Sender: TObject; Button: TNavigateBtn);
+    procedure JvDBNavigator1BeforeAction(Sender: TObject; Button: TNavigateBtn);
+  private
+    { Private declarations }
+    iDummi : Integer;
+    boleh_buka : Boolean;
+    procedure awal;
+    procedure buka_data;
+    procedure buka_kelompok;
+    procedure buka_kegiatan;
+    procedure isi_combo(aCombo : TComboBox; aQuery, aField : string);
+
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_Prolanis: TForm1_Prolanis;
+
+implementation
+
+uses dmProlanis, aau, aau111, brProlanisU, bulanDialog, System.DateUtils, KegiatanAddU,
+  pesertaAddU;
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+
+procedure TForm1_Prolanis.awal;
+begin
+boleh_buka := True;
+//isi_combo(TComboBox(cbb1Program), 'select * from kelompok.m_jenis', 'nm_program' );
+grid1Kelompok.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+grid1Kegiatan.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+grid1Peserta.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+//grid2.RestoreColumnsLayoutIni(Form111.MyIni, 'Beli', [crpColVisibleEh, crpColWidthsEh]);
+
+buka_data;
+end;
+
+procedure TForm1_Prolanis.btn1Click(Sender: TObject);
+var
+    br0 : brProlanis;
+begin
+   br0 := brProlanis.Create;
+   try
+     br0.getProlanisKelompok(dbedit1nm_program.Field.AsString);
+   finally
+     br0.Free;
+   end;
+   buka_data;
+end;
+
+procedure TForm1_Prolanis.btn2Click(Sender: TObject);
+var
+  br0 : brProlanis;
+begin
+  br0 := brProlanis.Create;
+  try
+    br0.getProlanisPeserta(dbtxtkegiatan.Field.AsString, dbtxtedu_id.Field.AsString);
+  finally
+    br0.Free;
+  end;
+  buka_data;
+end;
+
+procedure TForm1_Prolanis.btn4Click(Sender: TObject);
+begin
+Form1_tambahPeserta.labelKegiatan.Caption := dataProlanis.fdQKegiatan.FieldByName('id').AsString;
+Form1_tambahPeserta.labelEduId.Caption := dataProlanis.fdQKegiatan.FieldByName('edu_id').AsString;
+Form1_tambahPeserta.ShowModal;
+buka_data;
+end;
+
+procedure TForm1_Prolanis.btnKegiatanAddClick(Sender: TObject);
+begin
+//Form1_prolanisKegiatanAdd.chk1.Checked := True;
+form1_prolanisKegiatanAdd.ShowModal;
+//if Form1_prolanisKegiatanAdd.ModalResult = mrOK then buka_data;
+buka_data;
+end;
+
+procedure TForm1_Prolanis.btn_closeClick(Sender: TObject);
+begin
+grid1Kelompok.SaveColumnsLayoutIni(Form111.MyIni, Name, True);
+grid1Kegiatan.SaveColumnsLayoutIni(Form111.MyIni, Name, False);
+grid1Peserta.SaveColumnsLayoutIni(Form111.MyIni, Name, False);
+dataProlanis.FDConnection1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMessage('0');
+end;
+
+procedure TForm1_Prolanis.btn_dokterAmbilClick(Sender: TObject);
+var aBridge : BrDokter;
+begin
+  pb1.Max := 100;
+  pb1.Interval := 10;
+  pb1.Show;
+  Application.ProcessMessages;
+  try
+    aBridge := brDokter.create;
+    pb1.Position := pb1.Position + pb1.Interval;
+
+    if aBridge.getDokter('0', '100') then
+    begin
+    pb1.Position := pb1.Position + pb1.Interval;
+  //    eksekusi_script(memoOlah.Lines);
+    pb1.Position := pb1.Position + pb1.Interval;
+    end else ShowMessage('gagal');
+    {
+    memoHeader.Clear;
+    memoHeader.Lines.Add(aBridge.tsHeader.Text);
+    memoResponse.Clear;
+    memoResponse.Lines.Add(aBridge.tsResponse.Text);
+    }
+    buka_data;
+  finally
+    pb1.Position := pb1.Position + pb1.Interval;
+    ABridge.Free;
+    pb1.Position := pb1.Position + pb1.Interval;
+    pb1.Hide;
+    pb1.Position := pb1.Position + pb1.Interval;
+  end;
+end;
+
+procedure TForm1_Prolanis.buka_data;
+begin
+with dataProlanis do
+begin
+  FDConnection1.Connected := false;
+
+  case pageControl1.ActivePageIndex of
+  0 : buka_kelompok;
+  1 : buka_kegiatan;
+
+  end;
+
+
+  //FDQueryDokter.Open;
+end;
+boleh_buka := True;
+end;
+
+
+procedure TForm1_Prolanis.buka_kegiatan;
+begin
+  with dataProlanis do
+  begin
+  fdQKegiatan.Close;
+  fdQKegiatan.Open();
+
+  fdQPeserta.Close;
+  fdQPeserta.Open();
+  end;
+
+end;
+
+procedure TForm1_Prolanis.buka_kelompok;
+begin
+  with dataProlanis do
+  begin
+  fdQ1JenisProgram.Open();
+  fdQ1Kelompok.Close;
+  fdQ1Kelompok.Open();
+  end;
+end;
+
+procedure TForm1_Prolanis.Button1Click(Sender: TObject);
+var
+  tgl : TDate;
+  tglStr : string;
+  br0 : brProlanis;
+begin
+form1_bulanDialog.ShowModal;
+if Form1_bulanDialog.ModalResult = mrOK then
+begin
+   tgl := EncodeDate(Form1_bulanDialog.editTahun.AsInteger, Form1_bulanDialog.cbbBulan.ItemIndex + 1, 1);
+   DateTimeToString(tglStr, 'dd-MM-yyyy', tgl);
+   br0 := brProlanis.Create;
+   try
+     br0.getProlanisKegiatan(tgl);
+   finally
+     br0.Free;
+   end;
+end;
+buka_data;
+end;
+
+procedure TForm1_Prolanis.dbnav2BeforeAction(Sender: TObject;
+  Button: TNavigateBtn);
+  var
+    br0 : brProlanis;
+    hasil : Boolean;
+    status : string;
+begin
+status := TJvDBNavigator(Sender).DataSource.DataSet.FieldByName('status').AsString;
+if Button = nbDelete then
+if MessageBox(0, 'Hapus Data?', 'Konfirmasi', MB_YESNO) = mrYes then
+begin
+   if LowerCase(status) = 'ok' then
+   begin
+   hasil := False;
+   br0 := brProlanis.Create;
+   try
+      br0.delPeserta(dataProlanis.fdQPeserta.FieldByName('id').AsString);
+      hasil := br0.adl_berhasil;
+      if not hasil then
+      begin
+      //ShowMessage('not hasil');
+      Abort;
+      end;
+
+   finally
+   br0.Free;
+   end;
+   end;
+end;
+end;
+
+procedure TForm1_Prolanis.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+
+procedure TForm1_Prolanis.isi_combo(aCombo: TComboBox; aQuery, aField: string);
+begin
+aCombo.Clear;
+with dataProlanis do
+begin
+  fdQBuka.Close;
+  fdQBuka.SQL.Clear;
+  fdQBuka.SQL.Add(aQuery);
+  fdQBuka.Open;
+
+  while not fdQBuka.Eof do
+  begin
+    aCombo.Items.Add(fdQBuka.FieldByName(aField).AsString);
+    fdQBuka.Next;
+  end;
+  fdQBuka.Close;
+  aCombo.ItemIndex := 0;
+end;
+
+end;
+
+procedure TForm1_Prolanis.JvDBNavigator1BeforeAction(Sender: TObject;
+  Button: TNavigateBtn);
+  var br0 : brProlanis;
+      length_edu_id : integer;
+begin
+   length_edu_id := Length(TJvDBNavigator(Sender).DataSource.DataSet.FieldByName('edu_id').AsString);
+
+if Button = nbDelete then
+begin
+   if MessageBox(0, 'Yakin Hapus?', 'Konfirmasi', MB_YESNO) = mrYes then
+   begin
+     if length_edu_id > 0 then begin
+     br0 := brProlanis.Create;
+     try
+       br0.delKegiatan(dataProlanis.fdQKegiatan.FieldByName('id').AsString);
+       if not br0.adl_berhasil then Abort;
+
+     finally
+       br0.Free;
+     end;
+     end;
+     //buka_data;
+   end;
+end;
+
+//buka_data;
+end;
+
+procedure TForm1_Prolanis.nav1Click(Sender: TObject; Button: TNavigateBtn);
+  var apv : string;
+begin
+{
+if Button in [ nbInsert, nbEdit] then
+begin
+  //grid1.Options := grid1.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+  apv := dataMaster.fdQueryDokter.FieldByName('nama').AsString;
+  grid1.Options := grid1.Options - [dgEditing] + [dgRowSelect];
+  if TDBNavigator(Sender).DataSource.DataSet.Modified then TDBNavigator(Sender).DataSource.DataSet.Post;
+  end;
+
+}
+end;
+
+procedure TForm1_Prolanis.pageControl1Change(Sender: TObject);
+begin
+if boleh_buka then buka_data;
+
+end;
+
+procedure TForm1_Prolanis.pb1Progress(Sender: TObject; var AContinue: Boolean);
+begin
+Application.ProcessMessages;
+//ShowMessage('ok');
+end;
+
+end.

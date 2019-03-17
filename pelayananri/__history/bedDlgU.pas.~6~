@@ -1,0 +1,44 @@
+unit bedDlgU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, DBGridEhGrouping,
+  ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, EhLibVCL, GridsEh, DBAxisGridsEh,
+  DBGridEh;
+
+type
+  TForm1_bedDlg = class(TForm)
+    panel2: TPanel;
+    grid1: TDBGridEh;
+  private
+    { Private declarations }
+    boleh_buka : Boolean;
+    procedure buka_data;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_bedDlg: TForm1_bedDlg;
+
+implementation
+
+uses
+  dmRI;
+
+{$R *.dfm}
+
+{ TForm1_bedDlg }
+
+procedure TForm1_bedDlg.buka_data;
+begin
+with dataRI do
+begin
+  fdQueryBed.Close;
+  fdQueryBed.Open();
+end;
+end;
+
+end.

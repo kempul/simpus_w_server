@@ -1,0 +1,372 @@
+unit brTindakanU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  brTindakan = class(bridgeCommon)
+    private
+    function ambilJsonPostTindakan(idxstr : string) : string;
+    function ambilJsonPostTindakanTunggal(id : string) : string;
+    procedure masukkanDelTindakan(id : string);
+    procedure masukkanGetTindakanRef(kdTkp : string);
+    procedure masukkanPostTindakan(id : string);
+  public
+    function getTindakanRef (kdTkp : string; mulaiDari : string = '0' ; jumlahData : string = '100') : Boolean;
+    function postTindakan(idxstr : string) : Boolean;
+    function postTindakanTunggal(id : string) : Boolean;
+    function delTindakan (id_tindakan : string) : Boolean;
+    constructor Create;
+    destructor destroy;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, synautil;
+
+{ brTindakan }
+
+function brTindakan.ambilJsonPostTindakan(idxstr : string): string;
+var sql0, sql1 : string;
+    tes : string;
+    i : Integer;
+    V0 , V1, V2, list : Variant;
+
+begin
+  Result := '{"i": 0 }';
+  parameter_bridging('TINDAKAN', 'POST');
+
+
+  sql0 := 'select * from jkn.tindakan_view where idxstr = %s and kd_tindakan_sk = 0 and bpjs_kunjungan is not null;';
+  sql1 := Format(sql0,[QuotedStr(idxstr)]);
+  fdQuery.Close;
+  fdQuery.SQL.Clear;
+  fdQuery.SQL.Add(sql1);
+  fdQuery.Open();
+
+if fdQuery.IsEmpty then
+begin
+  fdQuery.Close;
+  Exit;
+end;
+
+  fdQuery.First;
+  list := _Arr([]);
+  V1 := _Json(FormatJson);
+//  myJson := _ObjFast([list]);
+  // tambahi id untuk merubah database jika respon sukses
+  V1.Add('id', '');
+  while not fdQuery.Eof do
+  begin
+      V1.id := fdQuery.FieldByName('id').AsString;
+      V1.noKunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+      V1.kdTindakan := fdQuery.FieldByName('kd_tindakan').AsString;
+  {/*
+      if not fdQuery.FieldByName('kd_racikan').IsNull then
+          V1.kdRacikan := fdQuery.FieldByName('kd_racikan').AsString;
+  */}
+      V1.biaya := fdQuery.FieldByName('biaya').AsInteger;
+      if not fdQuery.FieldByName('keterangan').IsNull then
+            V1.keterangan := fdQuery.FieldByName('keterangan').AsString;
+
+      V1.hasil := fdQuery.FieldByName('hasil').AsInteger;
+      list.Add(V1);
+      fdQuery.Next;
+  end;
+      V0 := _Obj(['list', list]);
+      Result := VariantSaveJSON(V0);
+      //FileFromString(Result, 'tes_obat.json');
+      fdQuery.Close;
+end;
+
+function brTindakan.ambilJsonPostTindakanTunggal(id: string): string;
+var sql0, sql1 : string;
+    tglStr : string;
+    i : Integer;
+    V1 : Variant;
+begin
+  Result := '';
+  parameter_bridging('TINDAKAN', 'POST');
+//  DateTimeToString(tglSqlStr, 'YYYY-MM-DD', tgl);
+  sql0 := 'select * from jkn.tindakan_view where id = %s and kd_tindakan_sk = 0  and bpjs_kunjungan is not null;';
+  sql1 := Format(sql0,[QuotedStr(id)]);
+
+ // ShowMessage(idxstr);
+  fdQuery.Close;
+  fdQuery.SQL.Clear;
+  fdQuery.SQL.Add(sql1);
+  fdQuery.Open();
+
+  V1 := _Json(FormatJson);
+//  ShowMessage(FormatJson);
+  if not fdQuery.IsEmpty then
+  begin
+    // ShowMessage('not empty');
+     jejakIdxstr := fdQuery.FieldByName('idxstr').AsString;
+     V1.kdTindakanSK := fdQuery.FieldByName('kd_tindakan_sk').AsInteger;
+     V1.noKunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+     V1.kdTindakan := fdQuery.FieldByName('kd_tindakan').AsString;
+     V1.biaya := fdQuery.FieldByName('biaya').AsInteger;
+     if not fdQuery.FieldByName('keterangan').IsNull then
+     V1.keterangan := fdQuery.FieldByName('keterangan').AsString;
+     V1.hasil := fdQuery.FieldByName('hasil').AsInteger;
+
+     fdQuery.Close;
+
+     Result := VariantSaveJSON(V1);
+    // FileFromString(Result, 'pendaftaran.json');
+
+  end else ShowMessage('data kosong');
+  //ShowMessage(Result);
+end;
+
+constructor brTindakan.Create;
+begin
+  inherited Create;
+  //aScript := TStringList.Create;
+end;
+
+function brTindakan.delTindakan(id_tindakan : string): Boolean;
+var sql0, sql1 : string;
+    tglStr, jejak : string;
+    kdTindakanSk, noKunjungan : string;
+    ts : TMemoryStream;
+begin
+
+Result := False;
+parameter_bridging('TINDAKAN', 'DELETE');
+// mencari parameter pendaftaran
+//ShowMessage('awal del');
+sql0 := 'select kd_tindakan_sk, bpjs_kunjungan from jkn.tindakan_view where id = %s;';
+sql1 := Format(sql0, [quotedStr(id_tindakan)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open;
+//jejak := id_tindakan;
+kdTindakanSk := fdQuery.FieldByName('kd_tindakan_sk').AsString;
+noKunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+fdQuery.Close;
+
+Uri := StringReplace( Uri, '{kdTindakanSK}', kdTindakanSk,  []);
+Uri := StringReplace( Uri, '{noKunjungan}', noKunjungan,  []);
+//Uri := StringReplace(Uri, '{noUrut}', noUrut, []);
+//showMessage(kdTindakanSk);
+if StrToIntDef(kdTindakanSk, 0) > 0 then
+begin
+  //showMessage('tes');
+  Result := httpDelete(Uri);
+  jejakIdxstr := id_tindakan;
+  if Result then masukkanDelTindakan(id_tindakan);
+
+end;
+FDConn.Close;
+end;
+
+destructor brTindakan.destroy;
+begin
+  inherited;
+end;
+
+function brTindakan.getTindakanRef(kdTkp : string; mulaiDari, jumlahData: string): Boolean;
+var sql0, sql1 : string;
+begin
+Result := False;
+parameter_bridging('TINDAKAN REFERENSI', 'GET');
+//ShowMessage(uri);
+Uri := StringReplace( Uri, '{kdTkp}', kdTkp,  []);
+Uri := StringReplace( Uri, '{start}', mulaiDari,  []);
+Uri := StringReplace(Uri, '{limit}', jumlahData, []);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkanGetTindakanRef(kdTkp);
+FDConn.Close;
+end;
+
+procedure brTindakan.masukkanDelTindakan(id : string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    kdTindakanSk : integer;
+    kdRacikan : string;
+begin
+//       ShowMessage('awal masukkan get');
+if logRest('DEL', 'TINDAKAN', tsResponse.Text) then
+begin
+//   DateTimeToString(tglStr, 'YYYY-MM-DD', tgl);
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+     sqlDel0 := 'update simpus.tindakan set kd_tindakan_sk = 0 where id_tindakan = %s;';
+     sqlDel1 := Format(sqlDel0, [quotedStr(id)]);
+
+    tSl.Add(sqlDel1);
+
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+procedure brTindakan.masukkanGetTindakanRef(kdTkp : string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdTindakan, nmTindakan : string;
+    maxTarif : integer;
+    withValue : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+if logRest('GET', 'TINDAKAN REFERENSI', tsResponse.Text) then
+begin
+   sqlDel0 := 'delete from simpus.m_tindakan where adl_bpjs = 1 and kd_tkp = ' + QuotedStr(kdTkp) + ';';
+   sql0 := 'insert into simpus.m_tindakan(kd_tindakan, nm_tindakan, max_tarif, with_value, kd_tkp) values(%s, %s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   tSl.Add(sqlDel0);
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+   for I := 0 to dataResp.response.list._count - 1 do
+     begin
+       kdTindakan := dataResp.response.list.Value(i).kdTindakan;
+       nmTindakan := dataResp.response.list.Value(i).nmTindakan;
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+       maxTarif := dataResp.response.list.Value(i).maxTarif;
+       withValue := dataResp.response.list.Value(i).withValue;
+
+       sql1 := Format(sql0, [QuotedStr(kdTindakan), quotedStr(nmTindakan), IntToStr(maxTarif), BoolToStr(withValue, True), QuotedStr(kdTkp)]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+procedure brTindakan.masukkanPostTindakan(id :string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    kdTindakanSK : integer;
+    kdRacikan : string;
+begin
+//       ShowMessage('awal masukkan get');
+   if logRest('POST', 'TINDAKAN', tsResponse.Text) then
+   begin
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+    kdTindakanSK := dataResp.response.message;
+    sqlDel0 := 'update simpus.tindakan set kd_tindakan_sk = %s where id_tindakan = %s;';
+    sqlDel1 := Format(sqlDel0, [IntToStr(kdTindakanSk), quotedStr(id)]);
+
+    tSl.Add(sqlDel1);
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+   end;
+end;
+
+function brTindakan.postTindakan(idxstr : string): Boolean;
+var sql0, sql1 : string;
+    tglStr : string;
+    no_urut : Integer;
+    ts : TMemoryStream;
+    V1, V2 : Variant;
+    I: Integer;
+    dataStr : string;
+    js : string;
+    id : string;
+begin
+Result := False;
+//parameter_bridging('OBAT', 'POST');
+js := ambilJsonPostTindakan(idxstr);
+if Length(js) > 30 then
+begin
+V1 := _Json(js);
+ts := TMemoryStream.Create;
+if V1.list._count > 0 then
+begin
+   try
+      for I := 0 to V1.list._count - 1 do
+      begin
+        VarClear(V2);
+        V2:= V1.List.Value(i);
+        _Unique(V2);
+        id := V2.id;
+        showMessage(id);
+        V2.delete('id');
+        dataStr := VariantSaveJSON(V2);
+        FormatJson := dataStr;
+        ts.Clear;
+        ts.Write(dataStr[1], Length(dataStr));
+
+        ShowMessage(dataStr);
+        Result := httpPost(Uri, ts);
+        jejakIdxstr := idxstr;
+        if Result then masukkanPostTindakan(id);
+        //FileFromString(dataStr, 'tes_obat'+ IntToStr(i)+'.json');
+      end;
+   finally
+
+      ts.Free;
+   end;
+end;
+end;
+FDConn.Close;
+end;
+
+function brTindakan.postTindakanTunggal(id: string): Boolean;
+var
+    mStream : TMemoryStream;
+    js, jejak : string;
+
+begin
+//jejak := jejakIdxstr;
+
+Result := False;
+//ShowMessage('awal pendaftaran');
+js := ambilJsonPostTindakanTunggal(id);
+//ShowMessage('akhir ambil json pendaftaran');
+if Length(js) > 20 then
+begin
+mStream := TMemoryStream.Create;
+WriteStrToStream(mStream, js);
+FormatJson := js;
+//Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+//ShowMessage('awal post pendaftaran');
+Result:= httpPost(Uri, mStream);
+jejakIdxstr := id;
+//ShowMessage('setelah post pendaftaran');
+
+
+mStream.Free;
+end;
+
+if Result then masukkanPostTindakan(id);
+FDConn.Close;
+end;
+
+end.

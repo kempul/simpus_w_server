@@ -1,0 +1,94 @@
+unit dmPasien;
+
+interface
+
+uses
+  SysUtils, Classes, DB,
+  JvDataSource, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.PG, FireDAC.Phys.PGDef,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.Comp.Client;
+
+type
+  TdataPasien = class(TDataModule)
+    dsKK: TJvDataSource;
+    dsPasien: TJvDataSource;
+    dsPasien0: TJvDataSource;
+    dsMR: TJvDataSource;
+    dsCetakKartuBerobatPV: TJvDataSource;
+    dsCetakKartuBerobat: TJvDataSource;
+    dsPasienLama: TJvDataSource;
+    FDConnection1: TFDConnection;
+    fdTransaction1: TFDTransaction;
+    fdpgdriver1: TFDPhysPgDriverLink;
+    fdCmd1: TFDCommand;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure qKKNewRecord(DataSet: TDataSet);
+    procedure qPasienNewRecord(DataSet: TDataSet);
+  private
+    { Private declarations }
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getpg;
+    
+  public
+    { Public declarations }
+  end;
+
+var
+  dataPasien: TdataPasien;
+
+implementation
+
+uses kunciu;
+
+{$R *.dfm}
+
+{ TdataPasien }
+
+procedure TdataPasien.DataModuleCreate(Sender: TObject);
+begin
+getpg;
+end;
+
+procedure TdataPasien.getpg;
+begin
+if conn1.Connected then conn1.Connected := false;
+
+//conn1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+conn1.Server := pghost;
+conn1.Port := StrToInt(pgport);
+conn1.Database := pgdb;
+conn1.Username := pguser;
+conn1.Password := pgpasswd;
+
+end;
+
+procedure TdataPasien.qKKNewRecord(DataSet: TDataSet);
+begin
+DataSet.FieldByName('id_tes').AsInteger := 1;
+DataSet.FieldByName('id_kk').AsString := '0';
+DataSet.FieldByName('kelompok').AsString := '00';
+DataSet.FieldByName('last_update').AsDateTime := Now;
+DataSet.FieldByName('kota').AsString := 'REMBANG';
+DataSet.FieldByName('prop').AsString := 'JAWA TENGAH';
+end;
+
+procedure TdataPasien.qPasienNewRecord(DataSet: TDataSet);
+begin
+DataSet.FieldByName('jenis_kelamin').AsString := 'L';
+DataSet.FieldByName('mr').AsString := '0';
+DataSet.FieldByName('kk').AsString := qKK.FieldByName('id_kk').AsString;
+DataSet.FieldByName('lama').AsInteger := 0;
+DataSet.FieldByName('last_updated').AsDateTime := Now;
+DataSet.FieldByName('status_keluarga').AsString := 'KK';
+DataSet.FieldByName('status_keluarga_ke').AsInteger := 1;
+end;
+
+end.

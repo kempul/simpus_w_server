@@ -1,0 +1,43 @@
+unit brKesadaranU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  brKesadaran = class(bridgeCommon)
+    private
+    public
+    function getKesadaran : Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkanGet;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons;
+
+{ brKesadaran }
+
+constructor brKesadaran.Create;
+begin
+inherited Create;
+end;
+
+destructor brKesadaran.destroy;
+begin
+inherited;
+end;
+
+function brKesadaran.getKesadaran: Boolean;
+begin
+
+end;
+
+procedure brKesadaran.masukkanGetDokter;
+begin
+
+end;
+
+end.

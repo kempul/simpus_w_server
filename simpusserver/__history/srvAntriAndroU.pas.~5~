@@ -1,0 +1,106 @@
+unit srvAntriAndroU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  srvAntriAndro = class(srvCommon)
+    private
+//    function jsonToSql(table : string = 'simpus.m_instalasi'; json : string = ''; update : Boolean = False; pkey : string = '') : string;
+    public
+    aScript : TStringList;
+    function getAntriAndro(puskesmas : integer; tanggal : TDateTime) : Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkanGetAntriAndro(puskesmas : integer; tanggal : TDateTime);
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot;
+{ srvAntriAndro }
+
+constructor srvAntriAndro.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvAntriAndro.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvAntriAndro.getAntriAndro(puskesmas : integer; tanggal : TDateTime): Boolean;
+var sql0, sql1, strTgl : string;
+begin
+DateTimeToString(strTgl, 'YYYY-MM-DD', tanggal);
+Result := False;
+parameter_bridging('antri andro', 'get');
+ShowMessage(uri);
+Uri := ReplaceStr(Uri, '{puskesmas}', IntToStr(puskesmas));
+Uri := ReplaceStr(Uri, '{tanggal}', strTgl);
+
+ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkangetAntriAndro(puskesmas, tanggal);
+
+end;
+
+
+
+procedure srvAntriAndro.masukkangetAntriAndro(puskesmas : integer; tanggal : TDateTime);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlx0, sqlx1 : string;
+    sql0, sql1 : string;
+    dId, dNik, dToken, strTgl : string;
+    adlAktif : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sql0 := 'insert into andro.antri_andro(id, puskesmas, tanggal, nik, token) values(%s, %s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   DateTimeToString(strTgl, 'YYYY-MM-DD', tanggal);
+   ShowMessage(tsResponse.Text);
+
+   dataResp := _jsonFast(tsResponse.Text);
+
+   if dataResp._count > 0 then
+   begin
+   try
+   for I := 0 to dataResp._count - 1 do
+     begin
+       dId := dataResp.Value(i).id;
+       ShowMessage('id : ' + dId);
+       dNik := dataResp.Value(i).nik;
+       ShowMessage('nik : ' + dNik);
+
+       dToken := dataResp.Value(i).token;
+       ShowMessage('token : ' + dToken);
+
+       sql1 := Format(sql0, [
+            QuotedStr(dId),
+            IntToStr(puskesmas),
+            QuotedStr(strTgl),
+            QuotedStr(dNik),
+            QuotedStr(dToken)
+            ]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+   finally
+      aScript.Assign(tSl);
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+end.

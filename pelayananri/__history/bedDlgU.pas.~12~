@@ -1,0 +1,71 @@
+unit bedDlgU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, DBGridEhGrouping,
+  ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, EhLibVCL, GridsEh, DBAxisGridsEh,
+  DBGridEh, Vcl.StdCtrls, Vcl.Buttons;
+
+type
+  TForm1_bedDlg = class(TForm)
+    panel2: TPanel;
+    grid1: TDBGridEh;
+    btnOk: TBitBtn;
+    btnCancel: TBitBtn;
+    labelKamar: TLabel;
+    procedure FormShow(Sender: TObject);
+    procedure btnOkClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+    boleh_buka : Boolean;
+    procedure buka_data;
+    procedure awal;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_bedDlg: TForm1_bedDlg;
+
+implementation
+
+uses
+  dmRI;
+
+{$R *.dfm}
+
+{ TForm1_bedDlg }
+
+procedure TForm1_bedDlg.awal;
+begin
+buka_data;
+end;
+
+procedure TForm1_bedDlg.btnOkClick(Sender: TObject);
+begin
+labelKamar.Caption := dataRI.fdQueryBed.FieldByName('nama_kamar').AsString;
+end;
+
+procedure TForm1_bedDlg.buka_data;
+begin
+with dataRI do
+begin
+  fdQueryBed.Close;
+  fdQueryBed.Open();
+end;
+end;
+
+procedure TForm1_bedDlg.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+dataRI.fdQueryBed.Close;
+end;
+
+procedure TForm1_bedDlg.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+end.

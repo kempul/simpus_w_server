@@ -1,0 +1,114 @@
+unit brPesertaU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  brPeserta = class(bridgeCommon)
+    private
+    procedure masukkanGetPeserta;
+    public
+    function getPeserta (kataKunci : string) : Boolean;
+    constructor Create;
+    destructor destroy;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons;
+
+{ brPeserta }
+
+constructor brPeserta.Create;
+begin
+  inherited Create;
+end;
+
+destructor brPeserta.destroy;
+begin
+   inherited;
+end;
+
+function brPeserta.getPeserta(kataKunci: string): Boolean;
+var sql0, sql1 : string;
+begin
+Result := False;
+parameter_bridging('PESERTA', 'GET');
+//ShowMessage(uri);
+Uri := StringReplace( Uri, '{keyword}', kataKunci,  []);
+//Uri := StringReplace( Uri, '{start}', mulaiDari,  []);
+//Uri := StringReplace(Uri, '{limit}', jumlahData, []);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkanGetPeserta;
+
+end;
+
+procedure brPeserta.masukkanGetPeserta;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlx0, sqlx1 : string;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    noKartu, nama, kdProvider, kdProviderGigi, noKtp, ketAktif  : string;
+    aktif : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sqlDel0 := 'delete from jkn.peserta where "noKartu" = %s;';
+   sql0 := 'insert into jkn.peserta("noKartu", "kdProvider", "noKTP", aktif, "ketAktif") ' +
+            'values(%s, %s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+   // simpsn respon
+   sqlx0 := 'insert into jkn.a_bpjs_resp(metode, uri, terkirim, terjawab) values( ''GET'', %s, %s, %s);';
+   sqlx1 := Format(sqlx0,[quotedStr(uri), quotedstr(''), quotedStr(tsResponse.Text)]);
+   tSl.Add(sqlx1);
+
+//          ShowMessage('sebelum json list');
+
+//   dataList := _JsonFast(dataResp.response.list);
+
+//       ShowMessage(IntToStr(dataResp.response.list._Count));
+
+       noKartu := dataResp.response.noKartu;
+       nama := dataResp.response.nama;
+       kdProvider := dataResp.response.kdProviderPst.kdProvider;
+{
+       if VarIsEmptyOrNull(dataResp.response.kdProviderGigi.kdProvider) then
+           kdProviderGigi := '' else  kdProviderGigi := dataResp.response.kdProviderGigi.kdProvider;
+}
+       if VarIsEmptyOrNull(dataResp.response.noKTP) then
+               noKTP := '' else noKTP := dataResp.response.noKTP;
+       aktif := dataResp.response.aktif;
+       ketAktif := dataResp.response.ketAktif;
+
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+
+       sqlDel1 := Format(sqlDel0,[QuotedStr(noKartu)]);
+       tSl.Add(sqlDel1);
+
+       sql1 := Format(sql0, [
+                            quotedStr(noKartu),
+                            quotedStr(kdProvider),
+                            quotedStr(noKtp),
+                            boolToStr(aktif, True),
+                            quotedStr(ketAktif)
+                            ]);
+       tSl.Add(sql1);
+       showMessage(sqlDel1);
+       showMessage(sql1);
+   finally
+
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+
+end.

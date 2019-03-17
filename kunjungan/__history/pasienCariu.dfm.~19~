@@ -1,0 +1,1012 @@
+object Form1_pasienCari: TForm1_pasienCari
+  Left = 0
+  Top = 0
+  BorderStyle = bsSingle
+  Caption = 'Mencari Pasien'
+  ClientHeight = 495
+  ClientWidth = 991
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  WindowState = wsMaximized
+  OnClose = FormClose
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object panel3: TPanel
+    Left = 0
+    Top = 0
+    Width = 991
+    Height = 145
+    Align = alTop
+    BevelOuter = bvNone
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 0
+    Visible = False
+    object memoResponse: TMemo
+      Left = 0
+      Top = 0
+      Width = 457
+      Height = 145
+      Align = alLeft
+      Lines.Strings = (
+        'memo2')
+      ScrollBars = ssBoth
+      TabOrder = 0
+    end
+    object memoSQL: TMemo
+      Left = 480
+      Top = 0
+      Width = 511
+      Height = 145
+      Align = alRight
+      Lines.Strings = (
+        'memo2')
+      ScrollBars = ssBoth
+      TabOrder = 1
+    end
+  end
+  object panel4: TPanel
+    Left = 0
+    Top = 185
+    Width = 991
+    Height = 310
+    Align = alClient
+    BevelOuter = bvNone
+    Caption = 'panel4'
+    TabOrder = 1
+    object pageControl1: TPageControl
+      Left = 0
+      Top = 0
+      Width = 991
+      Height = 310
+      ActivePage = tsBankData
+      Align = alClient
+      TabOrder = 0
+      object tsPasien: TTabSheet
+        Caption = 'CARI DATA PASIEN'
+        object dbnav1: TJvDBNavigator
+          Left = 0
+          Top = 210
+          Width = 983
+          Height = 25
+          DataSource = dataKunjungan.dsPasienCari
+          VisibleButtons = [nbDelete, nbEdit, nbPost, nbCancel, nbRefresh]
+          Align = alBottom
+          Flat = True
+          TabOrder = 0
+          OnClick = dbnav1Click
+        end
+        object grid1: TDBGridEh
+          AlignWithMargins = True
+          Left = 3
+          Top = 100
+          Width = 977
+          Height = 107
+          Align = alClient
+          ColumnDefValues.Title.Alignment = taCenter
+          DataSource = dataKunjungan.dsPasienCari
+          DynProps = <>
+          Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
+          SearchPanel.Enabled = True
+          SearchPanel.FilterOnTyping = True
+          TabOrder = 1
+          OnExit = grid1Exit
+          OnKeyPress = grid1KeyPress
+          Columns = <
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nik'
+              Footers = <>
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_lengkap'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_ayah'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'mr'
+              Footers = <>
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'biaya'
+              Footers = <>
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'kartu_bpjs'
+              Footers = <>
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'alamat'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'rt'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'rw'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kepala_keluarga'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_ibu'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'tgl_lahir'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'tmpt_lahir'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'agama'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'pekerjaan'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kel'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'hubungan_keluarga'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'jenis_kelamin'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_prop'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'gol_drh'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kec'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kab'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'pendidikan'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nomor_kk'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'status_kawin'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'no_akta_lahir'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'auto_mr'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'idx'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'kelompok'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end>
+          object RowDetailData: TRowDetailPanelControlEh
+          end
+        end
+        object panel5: TPanel
+          Left = 0
+          Top = 0
+          Width = 983
+          Height = 97
+          Align = alTop
+          Color = clGradientActiveCaption
+          ParentBackground = False
+          TabOrder = 2
+          object txt2: TStaticText
+            Left = 104
+            Top = 24
+            Width = 321
+            Height = 17
+            Caption = 'Nama / Nama KK / Nama Ayah / Nama Ibu / No RM / NIK / No BPJS'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clMaroon
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            ParentFont = False
+            TabOrder = 0
+          end
+          object editPasienCari: TEdit
+            Left = 104
+            Top = 53
+            Width = 325
+            Height = 21
+            TabOrder = 1
+            OnKeyPress = editPasienCariKeyPress
+          end
+          object btnCariLokal: TButton
+            Left = 448
+            Top = 51
+            Width = 75
+            Height = 25
+            Caption = 'cari'
+            TabOrder = 2
+            OnClick = btnCariLokalClick
+          end
+          object btnUpdateCapil: TButton
+            Left = 529
+            Top = 51
+            Width = 182
+            Height = 25
+            Caption = 'update sesuaikan dg data dukcapil'
+            TabOrder = 3
+            OnClick = btnUpdateCapilClick
+          end
+          object btnUpdateMR: TButton
+            Left = 717
+            Top = 51
+            Width = 188
+            Height = 25
+            Caption = 'update No RM berdasar TGL lahir'
+            TabOrder = 4
+            OnClick = btnUpdateMRClick
+          end
+        end
+        object panel2: TPanel
+          AlignWithMargins = True
+          Left = 3
+          Top = 238
+          Width = 977
+          Height = 41
+          Align = alBottom
+          BevelOuter = bvNone
+          TabOrder = 3
+          object lblMR: TLabel
+            Left = 56
+            Top = 16
+            Width = 25
+            Height = 13
+            Caption = 'lblMR'
+            Visible = False
+          end
+          object lblNama: TLabel
+            Left = 248
+            Top = 16
+            Width = 37
+            Height = 13
+            Caption = 'lblNama'
+            Visible = False
+          end
+          object lblBPJS: TLabel
+            Left = 312
+            Top = 16
+            Width = 33
+            Height = 13
+            Caption = 'lblBPJS'
+            Visible = False
+          end
+          object labelNIK: TLabel
+            Left = 648
+            Top = 16
+            Width = 39
+            Height = 13
+            Caption = 'labelNIK'
+            Visible = False
+          end
+          object labelPasien: TLabel
+            Left = 714
+            Top = 16
+            Width = 53
+            Height = 13
+            Caption = 'labelPasien'
+            Visible = False
+          end
+          object btn1: TBitBtn
+            Left = 528
+            Top = 8
+            Width = 75
+            Height = 25
+            Caption = 'OK'
+            Glyph.Data = {
+              DE010000424DDE01000000000000760000002800000024000000120000000100
+              0400000000006801000000000000000000001000000000000000000000000000
+              80000080000000808000800000008000800080800000C0C0C000808080000000
+              FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+              3333333333333333333333330000333333333333333333333333F33333333333
+              00003333344333333333333333388F3333333333000033334224333333333333
+              338338F3333333330000333422224333333333333833338F3333333300003342
+              222224333333333383333338F3333333000034222A22224333333338F338F333
+              8F33333300003222A3A2224333333338F3838F338F33333300003A2A333A2224
+              33333338F83338F338F33333000033A33333A222433333338333338F338F3333
+              0000333333333A222433333333333338F338F33300003333333333A222433333
+              333333338F338F33000033333333333A222433333333333338F338F300003333
+              33333333A222433333333333338F338F00003333333333333A22433333333333
+              3338F38F000033333333333333A223333333333333338F830000333333333333
+              333A333333333333333338330000333333333333333333333333333333333333
+              0000}
+            ModalResult = 1
+            NumGlyphs = 2
+            TabOrder = 0
+            OnClick = btn1Click
+          end
+          object btn2: TBitBtn
+            Left = 431
+            Top = 8
+            Width = 75
+            Height = 25
+            Kind = bkCancel
+            NumGlyphs = 2
+            TabOrder = 1
+          end
+          object dtp1: TDateTimePicker
+            Left = 112
+            Top = 12
+            Width = 105
+            Height = 21
+            Date = 42679.770702557870000000
+            Time = 42679.770702557870000000
+            TabOrder = 2
+            Visible = False
+          end
+          object check1: TCheckBox
+            Left = 24
+            Top = 3
+            Width = 97
+            Height = 17
+            Caption = 'check1'
+            TabOrder = 3
+            Visible = False
+          end
+        end
+      end
+      object tsBankData: TTabSheet
+        Caption = 'CARI DARI BANK DATA'
+        ImageIndex = 1
+        object navBank: TJvDBNavigator
+          Left = 0
+          Top = 257
+          Width = 983
+          Height = 25
+          DataSource = dataKunjungan.dsBankData
+          VisibleButtons = [nbEdit, nbPost, nbCancel, nbRefresh]
+          Align = alBottom
+          Flat = True
+          TabOrder = 0
+        end
+        object gridBank: TDBGridEh
+          AlignWithMargins = True
+          Left = 3
+          Top = 97
+          Width = 977
+          Height = 157
+          Align = alClient
+          ColumnDefValues.Title.Alignment = taCenter
+          DataSource = dataKunjungan.dsBankData
+          DynProps = <>
+          Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
+          SearchPanel.Enabled = True
+          SearchPanel.FilterOnTyping = True
+          TabOrder = 1
+          OnDblClick = gridBankDblClick
+          OnExit = grid1Exit
+          OnKeyPress = grid1KeyPress
+          Columns = <
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nik'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_lengkap'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_ayah'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_ibu'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kepala_keluarga'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'alamat'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'rt'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'rw'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nomor_kk'
+              Footers = <>
+              ReadOnly = True
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_prop'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kab'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kec'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'nama_kel'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'tmpt_lahir'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'tgl_lahir'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'jenis_kelamin'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'gol_drh'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'agama'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'pekerjaan'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'hubungan_keluarga'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'pendidikan'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'status_kawin'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'no_akta_lahir'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'hp'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'no_prop'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'no_kab'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'no_kec'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'no_kel'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end
+            item
+              CellButtons = <>
+              DynProps = <>
+              EditButtons = <>
+              FieldName = 'sdh_dipindah'
+              Footers = <>
+              ReadOnly = True
+              Visible = False
+            end>
+          object RowDetailData: TRowDetailPanelControlEh
+          end
+        end
+        object panel6: TPanel
+          Left = 0
+          Top = 0
+          Width = 983
+          Height = 94
+          Align = alTop
+          TabOrder = 2
+          object txt3: TStaticText
+            Left = 104
+            Top = 12
+            Width = 287
+            Height = 17
+            Caption = 'Nama / Nama Ayah / Nama Ibu / Nama KK / NIK / Nomor KK'
+            TabOrder = 0
+          end
+          object edit1Bank: TEdit
+            Left = 104
+            Top = 34
+            Width = 325
+            Height = 21
+            TabOrder = 1
+            OnKeyPress = edit1BankKeyPress
+          end
+          object btn1CariBank: TButton
+            Left = 448
+            Top = 32
+            Width = 75
+            Height = 25
+            Caption = 'cari'
+            TabOrder = 2
+            OnClick = btn1CariBankClick
+          end
+          object btnAmbilDukcapil: TButton
+            Left = 529
+            Top = 32
+            Width = 182
+            Height = 25
+            Caption = 'ambil data dr dukcapil'
+            TabOrder = 3
+            OnClick = btnAmbilDukcapilClick
+          end
+          object txt4: TStaticText
+            Left = 1
+            Top = 76
+            Width = 981
+            Height = 17
+            Align = alBottom
+            Alignment = taCenter
+            Caption = 'DOUBLE KLIK PADA DATA YANG DIMAKSUDKAN'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clMaroon
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 4
+          end
+        end
+      end
+      object tsBaru: TTabSheet
+        Caption = 'MASUKKAN PASIEN BARU'
+        ImageIndex = 2
+        object grp2: TGroupBox
+          Left = 0
+          Top = 0
+          Width = 983
+          Height = 282
+          Align = alClient
+          Caption = 'Data Pasien'
+          TabOrder = 0
+          object label4: TLabel
+            Left = 40
+            Top = 56
+            Width = 27
+            Height = 13
+            Caption = 'Nama'
+          end
+          object labelKelamin: TLabel
+            Left = 40
+            Top = 80
+            Width = 61
+            Height = 13
+            Caption = 'jenis Kelamin'
+          end
+          object labelTgl: TLabel
+            Left = 40
+            Top = 109
+            Width = 123
+            Height = 13
+            Caption = 'Tanggal Lahir (dd/mm/yy)'
+          end
+          object label5: TLabel
+            Left = 40
+            Top = 32
+            Width = 31
+            Height = 13
+            Caption = 'No RM'
+          end
+          object label6: TLabel
+            Left = 40
+            Top = 134
+            Width = 72
+            Height = 13
+            Caption = 'No. Kartu BPJS'
+          end
+          object labellbl1: TLabel
+            Left = 256
+            Top = 32
+            Width = 38
+            Height = 13
+            Caption = 'labellbl1'
+          end
+          object editNama: TEdit
+            Left = 184
+            Top = 53
+            Width = 217
+            Height = 21
+            TabOrder = 1
+          end
+          object cbbKelamin: TComboBox
+            Left = 184
+            Top = 77
+            Width = 57
+            Height = 21
+            AutoDropDown = True
+            ItemIndex = 0
+            TabOrder = 2
+            Text = 'L'
+            Items.Strings = (
+              'L'
+              'P')
+          end
+          object editMR: TEdit
+            Left = 184
+            Top = 29
+            Width = 169
+            Height = 21
+            TabOrder = 0
+            Text = '0'
+          end
+          object editBPJS: TEdit
+            Left = 184
+            Top = 131
+            Width = 169
+            Height = 21
+            TabOrder = 4
+          end
+          object panel7: TPanel
+            Left = 2
+            Top = 215
+            Width = 979
+            Height = 65
+            Align = alBottom
+            BevelOuter = bvNone
+            TabOrder = 5
+            object btnSimpanPasien: TButton
+              Left = 200
+              Top = 16
+              Width = 75
+              Height = 25
+              Caption = 'Simpan Pasien'
+              TabOrder = 0
+              OnClick = btnSimpanPasienClick
+            end
+            object btnbatalPasien: TButton
+              Left = 113
+              Top = 16
+              Width = 75
+              Height = 25
+              Caption = 'Batal Pasien'
+              TabOrder = 1
+            end
+          end
+          object medtTgl: TMaskEdit
+            Left = 184
+            Top = 104
+            Width = 94
+            Height = 21
+            AutoSize = False
+            EditMask = '!99/99/0000;1;_'
+            MaxLength = 10
+            TabOrder = 3
+            Text = '  /  /    '
+          end
+        end
+      end
+    end
+  end
+  object paneltxt1: TPanel
+    Left = 0
+    Top = 145
+    Width = 991
+    Height = 40
+    Align = alTop
+    BevelOuter = bvNone
+    ParentColor = True
+    TabOrder = 2
+  end
+  object pb1: TJvProgressDialog
+    Caption = 'TUNGGU....'
+    Interval = 10
+    ShowCancel = False
+    Smooth = True
+    Text = 'TUNGGU ...'
+    Transparent = True
+    Left = 16
+    Top = 16
+  end
+end

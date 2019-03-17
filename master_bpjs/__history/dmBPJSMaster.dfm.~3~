@@ -1,0 +1,70 @@
+object dataMasterBPJS: TdataMasterBPJS
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  Height = 514
+  Width = 751
+  object dsICDX: TJvDataSource
+    Left = 424
+    Top = 16
+  end
+  object dsDokter: TJvDataSource
+    Left = 536
+    Top = 16
+  end
+  object dsObat: TJvDataSource
+    Left = 136
+    Top = 128
+  end
+  object dsPoli: TJvDataSource
+    Left = 288
+    Top = 128
+  end
+  object dsPoliRujukan: TJvDataSource
+    Left = 424
+    Top = 136
+  end
+  object dsProvider: TJvDataSource
+    Left = 584
+    Top = 128
+  end
+  object dsTindakan: TJvDataSource
+    Left = 592
+    Top = 200
+  end
+  object dsKesadaran: TJvDataSource
+    Left = 432
+    Top = 272
+  end
+  object dsPulang: TJvDataSource
+    Left = 232
+    Top = 248
+  end
+  object FDConnection1: TFDConnection
+    ConnectionName = 'simpuspg'
+    Params.Strings = (
+      'User_Name=dkkuser'
+      'Password=nganggodkk'
+      'Database=simpusbulu'
+      'Server=localhost'
+      'DriverID=PG')
+    Connected = True
+    LoginPrompt = False
+    Transaction = fdTransaction1
+    Left = 96
+    Top = 16
+  end
+  object fdTransaction1: TFDTransaction
+    Connection = FDConnection1
+    Left = 168
+    Top = 16
+  end
+  object fdpgdriver1: TFDPhysPgDriverLink
+    Left = 232
+    Top = 24
+  end
+  object fdCmd1: TFDCommand
+    Connection = FDConnection1
+    Left = 328
+    Top = 24
+  end
+end

@@ -1,0 +1,78 @@
+object Form1_bulanDialog: TForm1_bulanDialog
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  Caption = 'Form1_bulanDialog'
+  ClientHeight = 145
+  ClientWidth = 352
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lbl1: TLabel
+    Left = 48
+    Top = 19
+    Width = 30
+    Height = 13
+    Caption = 'Tahun'
+  end
+  object lbl2: TLabel
+    Left = 48
+    Top = 46
+    Width = 26
+    Height = 13
+    Caption = 'Bulan'
+  end
+  object editTahun: TJvSpinEdit
+    Left = 104
+    Top = 16
+    Width = 121
+    Height = 21
+    TabOrder = 0
+  end
+  object cbbBulan: TJvComboBox
+    Left = 104
+    Top = 43
+    Width = 121
+    Height = 21
+    TabOrder = 1
+    Text = 'Januari'
+    Items.Strings = (
+      'Januari'
+      'Februari'
+      'Maret'
+      'April'
+      'Mei'
+      'Juni'
+      'Juli'
+      'Agustus'
+      'September'
+      'Oktober'
+      'November'
+      'Desember')
+    ItemIndex = 0
+  end
+  object btn1: TBitBtn
+    Left = 150
+    Top = 80
+    Width = 75
+    Height = 25
+    Kind = bkOK
+    NumGlyphs = 2
+    TabOrder = 2
+  end
+  object btn2: TBitBtn
+    Left = 69
+    Top = 80
+    Width = 75
+    Height = 25
+    Kind = bkCancel
+    NumGlyphs = 2
+    TabOrder = 3
+  end
+end

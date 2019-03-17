@@ -1,0 +1,2147 @@
+unit bridgeClassU;
+
+interface
+    uses Classes, SysUtils, StrUtils, DateUtils, JclTimeZones, flcHash, flcUtils, amyhttp,
+    SynCommons, DB, Uni, PostgreSQLUniProvider, DAScript, UniScript;
+
+type
+  BridgeTool = class
+   private
+      FUri, FNoUrut, FNoKunjungan, FkdMCU, FkdObatSK, FkdRacikan, FnoKartu, FProviderPst : string;
+      FkdTindakanSK : string;
+      jsConsID, jsKeyId, jsUserID, jsPasswd : string;
+      Fadl_aktif, Fadl_pstLayanan : Boolean;
+      tsHeader, tsResponse, FScriptSQL, FJsonSL : TStringList;
+      streamData : TMemoryStream;
+
+      pghost, pgport, pgdb, pguser, pgpasswd : string;
+      UniConnection : TUniConnection;
+      UniQuery : TUniQuery;
+      UniSQL : TUniSQL;
+      UniScript : TUniScript;
+      // data pasien pada database
+      FTgl : TDateTime;
+      FNomor : Integer;
+      Fidx_obat  : Integer;
+      Fidx_mcu  : Integer;
+      Fidx_tindakan : Integer;
+
+      procedure getparam;
+
+      function ambil_json(js : TlkJSONobject; str0 : string) : string;
+      function ambil_json_json(js : TlkJSONobject; str0 : string) : boolean;
+      function ambil_signature(xts : string) : string;
+      function post_dummi(uri_tambahan: string; data_load: TStrings) : boolean;
+      function put_dummi(uri_tambahan: string; data_load: TStrings) : boolean;
+      function get_dummi(uri_tambahan: string) : boolean;
+      function delete_dummi(uri_tambahan: string) : boolean;
+      procedure eksekusi_script;
+
+      function ambil_peserta : Boolean;
+
+      procedure update_no_urut;
+      procedure update_no_kunjungan;
+      procedure update_no_kunjungan0;
+      procedure update_sk_obat;
+      procedure update_sk_tindakan;
+      procedure update_kd_mcu;
+
+      procedure update_sk_obat_pasca_delete( kd_obat_sk : string; no_kunjungan : string);
+      procedure update_sk_tindakan_pasca_delete( kd_tindakan_sk : string; no_kunjungan : string);
+      procedure update_sk_mcu_pasca_delete( kd_mcu : string; no_kunjungan : string);
+
+   public
+
+      property ResponseData : TStringList read tsResponse;
+      property JsonSL : TStringList read FJsonSL;
+      property ScriptSQL : TStringList read FScriptSQL;
+      property uri_base : string read FUri;
+      property providerPst : string read FProviderPst;
+      property adl_aktif : Boolean read Fadl_aktif;
+      property adl_pstLayanan : Boolean read Fadl_pstLayanan;
+      property kdTindakanSK : string read FkdTindakanSK;
+      property kdMCU : string read FkdMCU;
+      property kdObatSK : string read FkdObatSK;
+      property kdRacikan : string read FkdRacikan;
+      property noUrut : string read FNoUrut;
+      property noKunjungan : string read FNoKunjungan;
+      constructor create;
+      destructor destroy; override;
+
+      procedure buat_json_daftar(vtgl : TDateTime; vnomor : Integer);
+      procedure buat_json_kunjungan(vtgl : TDateTime; vnomor : Integer);
+      procedure buat_json_kunjungan_update(vtgl : TDateTime; vnomor : Integer);
+      function buat_json_obat(vtgl : TDateTime; vnomor : Integer) : integer;
+      function buat_json_tindakan(vtgl : TDateTime; vnomor : Integer) : integer;
+      function buat_json_tindakan_update(vtgl : TDateTime; vnomor : Integer; vidx : integer) : integer;
+      function buat_json_mcu(vtgl : TDateTime; vnomor : Integer) : integer;
+      procedure buat_json_mcu_update(vtgl : TDateTime; vnomor : Integer; vkd_mcu : integer);
+
+
+      function ambil_sql_rujukan0(olah : TStrings; sql : TStrings) : Boolean;
+      function ambil_list_rujukan0(response : TStrings; tsOlah : TStrings) : Boolean;
+      
+      procedure buat_header;
+      function get_pendaftaran_by_urut( v_noUrut : string; vtgl : TDateTime; hasil : TStrings) : Boolean;
+      function get_pendaftaran_provider( hasil : TStrings; tglDaftar : TDateTime; awal : Integer = 0; limit : Integer = 5 ) : Boolean;
+      function post_pendaftaran( data_load : TStrings; hasil : TStrings) : Boolean;
+      function delete_pendaftaran( v_noKartu : string; tglDaftar : TDateTime; v_noUrut : string; hasil : TStrings) : Boolean;
+      function get_peserta (v_noKartu : string; hasil : TStrings): Boolean;
+      function put_kunjungan( data_load : TStrings; hasil : TStrings) : Boolean;
+      function post_kunjungan(data_load : TStrings; hasil : TStrings) : Boolean;
+      function get_dokter (hasil : TStrings): Boolean;
+      function get_diagnosa (hasil : TStrings; kata_kunci : string = 'a'; awal : Integer = 0; limit : Integer = 20000): Boolean;
+      function get_rujukan (v_noKunjungan : string; hasil : TStrings): Boolean;
+      function get_riwayat_kunjungan (v_noKartu : string; hasil : TStrings): Boolean;
+      function delete_kunjungan(v_noKunjungan : string; hasil : TStrings): Boolean;
+      function post_mcu( data_load : TStrings; hasil : TStrings) : Boolean;
+      function put_mcu( data_load : TStrings; hasil : TStrings) : Boolean;
+      function get_mcu( v_noKunjungan : string; hasil : TStrings) : Boolean;
+      function delete_mcu( v_kdMCU, v_noKunjungan : string; hasil : TStrings) : Boolean;
+      function get_obat (hasil : TStrings; kata_kunci : string = 'a'; awal : Integer = 0; limit : Integer = 5000): Boolean;
+      function get_obat_by_kunjungan (v_noKunjungan : string; hasil : TStrings): Boolean;
+      function post_obat(data_load : TStrings; hasil : TStrings) : Boolean;
+      function delete_obat( v_kdObatSK, v_noKunjungan : string; hasil : TStrings) : Boolean;
+      function get_poli_fktp (hasil : TStrings): Boolean;
+      function get_poli_fktl (hasil : TStrings): Boolean;
+      function get_provider (hasil : TStrings): Boolean;
+      function get_tindakan (hasil : TStrings): Boolean;
+      function get_tindakan_by_kunjungan ( v_noKunjungan : string; hasil : TStrings): Boolean;
+      function delete_tindakan(v_kdTindakanSK, v_noKunjungan : string; hasil : TStrings): Boolean;
+      function post_tindakan(data_load : TStrings; hasil : TStrings) : Boolean;
+      function put_tindakan(data_load : TStrings; hasil : TStrings) : Boolean;
+      function get_statuspulang_inap (hasil : TStrings): Boolean;
+      function get_statuspulang_jalan (hasil : TStrings): Boolean;
+      function get_kesadaran(hasil : TStrings): Boolean;
+
+      procedure ambil_list_dokter(aScript : TStrings);
+      procedure ambil_list_tindakan(aScript : TStrings);
+      procedure ambil_list_obat(aScript : TStrings; kata_kunci : string = 'a');
+      procedure ambil_list_diagnosa(aScript : TStrings; kata_kunci : string = 'a');
+      procedure ambil_list_provider(aScript : TStrings);
+      procedure ambil_list_rujukan(aScript : TStrings);
+      procedure ambil_list_poli(aScript : TStrings);
+      procedure ambil_list_poli_rujukan(aScript : TStrings);
+      function ambil_list_peserta(vResponse : TStrings; vOlah : TStrings) : Boolean;
+      procedure ambil_list_kesadaran(aScript : TStrings);
+      procedure ambil_list_pulang_inap(aScript : TStrings);
+      procedure ambil_list_pulang_jalan(aScript : TStrings);
+  end;
+
+
+function ubah_ke_datetime(vstr : string) : TDateTime;
+
+implementation
+      uses Variants, aaaliCrypt;
+{ BridgeTool }
+function ubah_ke_datetime(vstr : string) : TDateTime;
+var tfs : TFormatSettings;
+begin
+   GetLocaleFormatSettings(0, tfs);
+   tfs.DateSeparator := '-';
+   tfs.ShortDateFormat := 'DD-MM-YYYY';
+
+   Result := StrToDateTime(vstr, tfs);
+end;
+
+function ambil_data(aField : TField) : string;
+begin
+   if aField.IsNull then
+        Result := 'null' else
+   if aField is TDateTimeField then
+        Result := '"'+FormatDateTime('dd-MM-yyyy', aField.Value) + '"' else
+   if aField is TFloatField then
+        Result := FloatToStr(aField.Value) else
+   if aField is TLargeintField then
+        Result := IntToStr(aField.Value) else
+   if aField is TIntegerField then
+        Result := IntToStr(aField.Value) else
+   if aField is TStringField then
+        Result := '"' + aField.AsString + '"' else
+   if aField is TMemoField then
+        Result := '"' + aField.AsString + '"' else
+   if aField is TBooleanField then
+        Result := LowerCase(BoolToStr(aField.Value, true));
+end;
+
+function json_buat_awal : string;
+begin
+  Result := '{';
+end;
+
+
+function json_buat_akhir : string;
+begin
+  Result := '}';
+end;
+
+
+function json_buat_hubung : string;
+begin
+Result := ',';
+end;
+
+
+function json_tambah_key(akey : string) : string;
+begin
+   Result := '"' + akey + '":';
+end;
+
+
+function json_data(akey : string; aField : TField) : string;
+begin
+  Result := json_tambah_key(akey) + ambil_data(aField);
+end;
+
+
+function BridgeTool.ambil_json(js: TlkJSONobject; str0: string): string;
+begin
+if js.Field[str0] is TlkJSONnull then Result := '' else
+    Result := js.getString(str0);
+end;
+
+function BridgeTool.ambil_json_json(js: TlkJSONobject; str0: string): boolean;
+begin
+Result := True;
+if js.Field[str0] is TlkJSONnull then Result := False;
+end;
+
+procedure BridgeTool.ambil_list_diagnosa(aScript: TStrings; kata_kunci : string = 'a');
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1, sqlDel: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+   sql0 := 'delete from simpus2.m_diagnosis where upper(kd_diag) like upper(%s) or upper(nm_diag) like upper(%s);';
+   sql1 := Format(sql0, [QuotedStr('%' + kata_kunci + '%'), QuotedStr('%' + kata_kunci + '%')]);
+ //  aScript.Add(sql1);
+   sql0 := 'insert into simpus2.m_diagnosis(kd_diag, nm_diag, non_spesialis) values(%s, %s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdDiag');
+   str1 := vjs2.getString('nmDiag');
+   str2 := BoolToStr(vjs2.getBoolean('nonSpesialis'), true);
+//   str0 := varToStr(vjsonObj.FieldByIndex[0].Field['list'].Child[i].Field['kdTindakan'].Value);
+   sqlDel := 'delete from simpus2.m_diagnosis where kd_diag = ''' + str0 + ''';';
+   aScript.Add(sqlDel);
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1), str2]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+
+procedure BridgeTool.ambil_list_dokter(aScript : TStrings);
+var
+  vJsonObj: TlkJsonObject;
+  vJsonStr, str0, str1, str2, sql0, sql1: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+   aScript.Add('delete from simpus2.dokter where kd_dokter is not null;');
+   sql0 := 'insert into simpus2.dokter(kd_dokter, nama) values(%s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   str0 := varToStr(vjsonObj.FieldByIndex[0].Field['list'].Child[i].Field['kdDokter'].Value);
+   str1 := varToStr(vjsonObj.FieldByIndex[0].Field['list'].Child[i].Field['nmDokter'].Value);
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1)]);
+   aScript.Add(sql1);
+
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+procedure BridgeTool.ambil_list_kesadaran(aScript: TStrings);
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+   aScript.Add('delete from simpus2.m_kesadaran where idx is not null;');
+   sql0 := 'insert into simpus2.m_kesadaran(idx, kesadaran_str) values(%s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdSadar');
+   str1 := vjs2.getString('nmSadar');
+//   str2 := BoolToStr(vjs2.getBoolean('poliSakit'), True);//   str2 := intToStr(vjs2.getInt('maxValue'));
+//   str3 := BoolToStr(vjs2.getBoolean('withValue'), True);
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1)]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+
+procedure BridgeTool.ambil_list_obat(aScript: TStrings; kata_kunci : string = 'a');
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1, sqlDel: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   sql0 := 'delete from simpus2.m_obat where ( (upper(nm_obat) like upper(%s) or upper(kd_obat) like upper(%s)) and (adl_dpho = true) );';
+   sql1 := Format(sql0, [QuotedStr('%' + kata_kunci + '%'), QuotedStr('%' + kata_kunci + '%')]);
+   aScript.Clear;
+  {
+  // aScript.Add(sql1);
+   if kata_kunci = 'a' then
+   aScript.Add('delete from simpus2.m_obat where adl_dpho = true;');
+   }
+   sql0 := 'insert into simpus2.m_obat(kd_obat, nm_obat, sedia) values(%s, %s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdObat');
+   str1 := vjs2.getString('nmObat');
+   str2 := intToStr(vjs2.getInt('sedia'));
+//   str0 := varToStr(vjsonObj.FieldByIndex[0].Field['list'].Child[i].Field['kdTindakan'].Value);
+
+   sqlDel := 'delete from simpus2.m_obat where kd_obat = ''' + str0 + ''';';
+   aScript.Add(sqlDel);
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1), str2]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+function BridgeTool.ambil_list_peserta(vResponse, vOlah: TStrings): Boolean;
+var js, Rsp, Pvd : TlkJSONobject;
+    ketAktif, tes, str0 : string;
+    aktif : boolean;
+    Int0 : Integer;
+begin
+   FnoKartu := '';
+   Fadl_aktif := False;
+   Fadl_pstLayanan := False;
+
+   Result := True;
+   if vResponse.Count > 0 then
+   begin
+   vOlah.Clear;
+   js := TlkJSON.ParseText(vResponse.Text) as TlkJSONobject;
+   if (js.FieldByIndex[0] is TlkJSONnull) then
+   begin
+     Result := False;
+     Exit;
+   end;
+
+   Rsp := js.Field['response'] as TlkJSONobject;
+
+   FnoKartu := Rsp.getString('noKartu');
+
+   ketAktif := Rsp.getString('ketAktif');
+   aktif := Rsp.getBoolean('aktif');
+
+   Pvd := Rsp.Field['kdProviderPst'] as TlkJSONobject;
+   FproviderPst := Pvd.getString('kdProvider');
+
+   Fadl_pstLayanan := FproviderPst = jsUserID;
+
+   Fadl_aktif := ((ketAktif = 'AKTIF') and (aktif));
+
+   vOlah.Add('noKartu='+ FnoKartu);
+   vOlah.Add('kdProviderPst=' + FProviderPst);
+   vOlah.Add('adl_aktif=' + BoolToStr(Fadl_aktif, True));
+   vOlah.Add('adl_pstPelayanan=' + BoolToStr(Fadl_pstLayanan, True));
+   end else Result := False;
+
+end;
+
+procedure BridgeTool.ambil_list_poli(aScript: TStrings);
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1, sqlDel : String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+//   aScript.Add('delete from simpus2.m_poli where adl_bpjs = true;');
+   sql0 := 'insert into simpus2.m_poli(kode, poli, poli_sakit, adl_bpjs) values(%s, %s, %s, TRUE);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdPoli');
+   str1 := vjs2.getString('nmPoli');
+   str2 := BoolToStr(vjs2.getBoolean('poliSakit'), True);//   str2 := intToStr(vjs2.getInt('maxValue'));
+//   str3 := BoolToStr(vjs2.getBoolean('withValue'), True);
+   sqlDel := 'delete from simpus2.m_poli where kode = %s;';
+   aScript.Add(format(sqlDel, [QuotedStr(str0)]));
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1), str2]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+procedure BridgeTool.ambil_list_poli_rujukan(aScript: TStrings);
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+   aScript.Add('delete from simpus2.poli_rujukan where kdpoli is not null;');
+   sql0 := 'insert into simpus2.poli_rujukan(kdpoli, nmpoli, polisakit) values(%s, %s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdPoli');
+   str1 := vjs2.getString('nmPoli');
+   str2 := BoolToStr(vjs2.getBoolean('poliSakit'), True);//   str2 := intToStr(vjs2.getInt('maxValue'));
+//   str3 := BoolToStr(vjs2.getBoolean('withValue'), True);
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1), str2]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+procedure BridgeTool.ambil_list_provider(aScript: TStrings);
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+   aScript.Add('delete from simpus2.provider where adl_provider = true;');
+   sql0 := 'insert into simpus2.provider(kd_provider, nm_provider) values(%s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdProvider');
+   str1 := vjs2.getString('nmProvider');
+//   str2 := intToStr(vjs2.getInt('maxValue'));
+//   str3 := BoolToStr(vjs2.getBoolean('withValue'), True);
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1)]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+procedure BridgeTool.ambil_list_pulang_inap(aScript: TStrings);
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+//   aScript.Add('delete from simpus2.provider where adl_provider = true;');
+   sql0 := 'update simpus2.m_pulang set nm_pulang = %s where kd_pulang = %s;';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdStatusPulang');
+   str1 := vjs2.getString('nmStatusPulang');
+//   str2 := intToStr(vjs2.getInt('maxValue'));
+//   str3 := BoolToStr(vjs2.getBoolean('withValue'), True);
+
+   sql1 := format(sql0, [quotedStr(str1), quotedStr(str0)]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+//   eksekusi_script;
+end;
+
+procedure BridgeTool.ambil_list_pulang_jalan(aScript: TStrings);
+begin
+
+end;
+
+procedure BridgeTool.ambil_list_rujukan(aScript: TStrings);
+var js, Rsp, jsPPK, jskc, jsdati, jskr, jsTacc : TlkJSONobject;
+    str0, sql0, sql1 : string;
+    memoOlah : TStringList;
+    vtgl : TDateTime;
+begin
+   memoOlah := TStringList.Create;
+   aScript.Clear;
+   sql0 :='delete from simpus2.bpjs_rujukan where no_kunjungan = %s;';
+   sql1:= Format(sql0, [QuotedStr(noKunjungan)]);
+   aScript.Add(sql1);
+
+   sql0 := 'insert into simpus2.bpjs_rujukan(no_kunjungan, no_rujukan, kd_ppk, nm_ppk, kd_kc, nm_kc, kd_dati, nm_dati, nm_kr, noka_pst, nm_pst, tgl_lahir, pisa, ket_pisa, sex, nm_tacc, alasan_tacc) '
+            + 'values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);';
+
+  memoOlah.Clear;
+  js := TlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+    Rsp := js.Field['response']  as TlkJSONobject;
+    str0 := Rsp.getString('noRujukan');
+    memoOlah.Add('noRujukan='+ str0);
+    str0 := Rsp.getString('nmPst');
+    memoOlah.Add('nmPst=' + str0);
+    str0 := Rsp.getString('nokaPst');
+    memoOlah.Add('nokaPst=' + str0);
+    str0 := Rsp.getString('tglLahir');
+    vtgl := ubah_ke_datetime(str0);
+    memoOlah.Add('tglLahir=' + str0);
+    str0 := Rsp.getString('pisa');
+    memoOlah.Add('pisa=' + str0);
+    str0 := Rsp.getString('ketPisa');
+    memoOlah.Add('ketPisa=' + str0);
+    str0 := Rsp.getString('sex');
+    memoOlah.Add('sex=' + str0);
+
+
+      jsTAcc := Rsp.Field['tacc'] as TlkJSONobject;
+      str0 := ambil_json(jsTacc, 'nmTacc');
+      memoOlah.Add('nmTacc=' + str0);
+      str0 := ambil_json(jsTacc, 'alasanTacc');
+      memoOlah.Add('alasanTacc=' + str0);
+
+
+      jsPPK := Rsp.Field['ppk'] as TlkJSONobject;
+      str0 := jsPPK.getString('kdPPK');
+      memoOlah.Add('kdPPK=' + str0);
+      str0 := jsPPK.getString('nmPPK');
+      memoOlah.Add('nmPPK=' + str0);
+
+        jskc := jsPPK.Field['kc'] as TlkJSONobject;
+        str0 := jskc.getString('kdKC');
+        memoOlah.Add('kdKC=' + str0);
+        str0 := jskc.getString('nmKC');
+        memoOlah.Add('nmKC=' + str0);
+          jsdati := jskc.Field['dati'] as TlkJSONobject;
+          str0 := jsdati.getString('kdDati');
+          memoOlah.Add('kdDati=' + str0);
+          str0 := jsdati.getString('nmDati');
+          memoOlah.Add('nmDati=' + str0);
+
+          jskr := jskc.Field['kdKR'] as TlkJSONobject;
+          str0 := jskr.getString('nmKR');
+          memoOlah.Add('nmKR=' + str0);
+
+    sql1 := Format(sql0, [
+                    QuotedStr(noKunjungan),
+                    QuotedStr(memoOlah.Values['noRujukan']),
+                    QuotedStr(memoOlah.Values['kdPPK']),
+                    QuotedStr(memoOlah.Values['nmPPK']),
+                    QuotedStr(memoOlah.Values['kdKC']),
+                    QuotedStr(memoOlah.Values['nmKC']),
+                    QuotedStr(memoOlah.Values['kdDati']),
+                    QuotedStr(memoOlah.Values['nmDati']),
+                    QuotedStr(memoOlah.Values['nmKR']),
+                    QuotedStr(memoOlah.Values['nokaPst']),
+                    QuotedStr(memoOlah.Values['nmPst']),
+                    QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)),
+                    QuotedStr(memoOlah.Values['pisa']),
+                    QuotedStr(memoOlah.Values['ketPisa']),
+                    QuotedStr(memoOlah.Values['sex']),
+                    QuotedStr(memoOlah.Values['nmTacc']),
+                    QuotedStr(memoOlah.Values['alasanTacc'])
+                    ]);
+
+    aScript.Add(sql1);
+    memoOlah.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+function BridgeTool.ambil_list_rujukan0(response, tsOlah: TStrings): Boolean;
+var js, rsp, jsppk, jskc, jsdati, jskr, jspoli, jsdiag, jsDokter, jsTAcc : TlkJSONobject;
+    str0, info_denda, sex, ket_pisa, pisa, no_rujukan, strTgl, tgl_kunjungan, noka_pst, nm_pst : string;
+    vTgl : TDateTime;
+begin
+   js := tlkJSON.ParseText(response.Text) as TlkJSONobject;
+   rsp := js.Field['response'] as TlkJSONobject;
+
+   tsOlah.Clear;
+   // TAcc
+   jsTAcc := rsp.Field['tacc'] as TlkJSONobject;
+   str0 := jsTAcc.getString('nmTacc');
+   tsOlah.Add('nm_tacc=' + str0);
+
+   str0 := jsTAcc.getString('alasanTacc');
+   tsOlah.Add('alasan_tacc=' + str0);
+
+   // dokter
+   jsDokter := rsp.Field['dokter'] as TlkJSONobject;
+   str0 := jsDokter.getString('kdDokter');
+   tsOlah.Add('kd_dokter=' + str0);
+
+   str0 := jsDokter.getString('nmDokter');
+   tsOlah.Add('nm_dokter=' + str0);
+
+
+   // Diag1
+   if ambil_json_json(rsp, 'diag1') then
+   begin
+   jsdiag := rsp.Field['diag1'] as TlkJSONobject;
+   str0 := jsdiag.getString('nmDiag');
+   tsOlah.Add('diag1=' + str0);
+   end else tsOlah.Add('diag1=');
+
+   // Diag2
+   if ambil_json_json(rsp, 'diag2') then
+   begin
+   jsdiag := rsp.Field['diag2'] as TlkJSONobject;
+   str0 := jsdiag.getString('nmDiag');
+   tsOlah.Add('diag2=' + str0);
+   end else tsOlah.Add('diag2=');
+
+   // Diag3
+   if ambil_json_json(rsp, 'diag3') then
+   begin
+   jsdiag := rsp.Field['diag3'] as TlkJSONobject;
+   str0 := jsdiag.getString('nmDiag');
+   tsOlah.Add('diag3=' + str0);
+   end else tsOlah.Add('diag3=');
+
+
+
+   // poli
+   jspoli := rsp.Field['poli'] as TlkJSONobject;
+   str0 := jspoli.getString('kdPoli');
+   tsOlah.Add('kd_poli=' + str0);
+
+   str0 := jspoli.getString('nmPoli');
+   tsOlah.Add('nm_poli=' + str0);
+
+   // ppk
+   jsppk := rsp.Field['ppk'] as TlkJSONobject;
+   str0 := jsppk.getString('kdPPK');
+   tsOlah.Add('kd_ppk=' + str0);
+
+   str0 := jsppk.getString('nmPPK');
+   tsOlah.Add('nm_ppk=' + str0);
+
+      jskc := jsppk.Field['kc'] as TlkJSONobject;
+      str0 := jskc.getString('kdKC');
+      tsOlah.Add('kd_kc=' + str0);
+
+      str0 := jskc.getString('nmKC');
+      tsOlah.Add('nm_kc=' + str0);
+
+        jsdati := jskc.Field['dati'] as TlkJSONobject;
+        str0 := jsdati.getString('kdDati');
+        tsOlah.Add('kd_dati=' + str0);
+
+        str0 := jsdati.getString('nmDati');
+        tsOlah.Add('nm_dati=' + str0);
+
+        jskr := jskc.Field['kdKR'] as TlkJSONobject;
+        str0 := jskr.getString('kdKR');
+        tsOlah.Add('kd_kr=' + str0);
+
+        str0 := jskr.getString('nmKR');
+        tsOlah.Add('nm_kr=' + str0);
+
+
+   // flat
+   no_rujukan := rsp.getString('noRujukan');
+   tsOlah.Add('no_rujukan=' + no_rujukan);
+
+   strTgl := rsp.getString('tglKunjungan');
+   vtgl := ubah_ke_dateTime(strTgl);
+   tsOlah.Add('tgl_kunjungan=' + FormatDateTime('yyyy-mm-dd', vTgl));
+
+   noka_pst := rsp.getString('nokaPst');
+   tsOlah.Add('noka_pst=' + noka_pst );
+
+   nm_pst := rsp.getString('nmPst');
+   tsOlah.Add('nm_pst=' + nm_pst );
+
+   strTgl := rsp.getString('tglLahir');
+   vtgl := ubah_ke_dateTime(strTgl);
+   tsOlah.Add('tgl_lahir=' + FormatDateTime('yyyy-mm-dd', vTgl));
+
+   pisa := rsp.getString('pisa');
+   tsOlah.Add('pisa=' + pisa );
+
+   ket_pisa := rsp.getString('ketPisa');
+   tsOlah.Add('ket_pisa=' + ket_pisa );
+
+   sex := rsp.getString('sex');
+   tsOlah.Add('sex=' + sex );
+
+   info_denda := ambil_json(rsp, 'infoDenda');
+   tsOlah.Add('info_denda=' + info_denda );
+
+end;
+
+procedure BridgeTool.ambil_list_tindakan(aScript: TStrings);
+var
+  vJsonObj, vjs2 : TlkJsonObject;
+  vJsonStr, str0, str1, str2, str3, sql0, sql1, sqlDel: String;
+  Bool0 : Boolean;
+  vJsonTs : TDateTime;
+  i, iCount : Integer;
+begin
+   aScript.Clear;
+//   aScript.Add('delete from simpus2.m_tindakan where kd_tindakan is not null;');
+   sql0 := 'insert into simpus2.m_tindakan(kd_tindakan, nm_tindakan, max_tarif, with_value) values(%s, %s, %s, %s);';
+
+   vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJsonObject;
+   iCount := vjsonObj.FieldByIndex[0].Field['list'].Count;
+   for i := 0 to iCount - 1 do
+   begin
+   vjs2 := vjsonObj.FieldByIndex[0].Field['list'].Child[i] as tlkJsonObject;
+   str0 := vjs2.getString('kdTindakan');
+   str1 := vjs2.getString('nmTindakan');
+   str2 := intToStr(vjs2.getInt('maxTarif'));
+   str3 := BoolToStr(vjs2.getBoolean('withValue'), True);
+//   str0 := varToStr(vjsonObj.FieldByIndex[0].Field['list'].Child[i].Field['kdTindakan'].Value);
+   sqlDel :=   'delete from simpus2.m_tindakan where kd_tindakan = %s;';
+   aScript.Add(format(sqlDel, [QuotedStr(str0)]));
+
+   sql1 := format(sql0, [quotedStr(str0), quotedStr(str1), str2, str3]);
+   aScript.Add(stringReplace(sql1, #13, '', [rfReplaceAll]));
+   end;
+   vjsonObj.Free;
+
+   FScriptSQL.Clear;
+   FScriptSQL.Assign(aScript);
+
+   eksekusi_script;
+end;
+
+function BridgeTool.ambil_peserta: Boolean;
+var js, Rsp, Pvd : TlkJSONobject;
+    ketAktif, tes, str0 : string;
+    aktif : boolean;
+    Int0 : Integer;
+begin
+   FnoKartu := '';
+   Fadl_aktif := False;
+   Fadl_pstLayanan := False;
+
+   Result := True;
+   if tsResponse.Count > 0 then
+   begin
+   js := TlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+   if (js.FieldByIndex[0] is TlkJSONnull) then
+   begin
+     Result := False;
+     Exit;
+   end;
+
+   Rsp := js.Field['response'] as TlkJSONobject;
+
+   FnoKartu := Rsp.getString('noKartu');
+
+   ketAktif := Rsp.getString('ketAktif');
+   aktif := Rsp.getBoolean('aktif');
+
+   Pvd := Rsp.Field['kdProviderPst'] as TlkJSONobject;
+   FproviderPst := Pvd.getString('kdProvider');
+
+   Fadl_pstLayanan := FproviderPst = jsUserID;
+
+   Fadl_aktif := ((ketAktif = 'AKTIF') and (aktif));
+   end else Result := False;
+
+end;
+
+function BridgeTool.ambil_signature(xts: string): string;
+var sig : T256BitDigest;
+begin
+   sig := CalcHMAC_SHA256(jskeyID, jsConsID + '&' + xts);
+   Result := MIMEBase64Encode(SHA256DigestToStrA(sig));
+end;
+
+function BridgeTool.ambil_sql_rujukan0(olah, sql: TStrings): Boolean;
+var sql0, sql01, sql1, sql11, sqls1, sqls11, sqlDel : string;
+begin
+sql.Clear;
+sqlDel := 'delete from simpus2.bpjs_rujukan0 where no_rujukan = %s;';
+
+sql.Add(Format(sqlDel, [QuotedStr(olah.Values['no_kunjungan'])]));
+
+sql0 := 'INSERT INTO simpus2.bpjs_rujukan0 ("no_rujukan", "kd_ppk", "nm_ppk", "nm_kc", "kd_dati", "nm_dati", "nm_kr", "tgl_kunjungan", "nm_poli", "noka_pst", "nm_pst", "tgl_lahir", "pisa", "ket_pisa", "sex", ';
+sql01 := '"diag1", "diag2", "diag3", "kd_dokter", "nm_dokter", "nm_tacc", "alasan_tacc", "info_denda") ';
+sql1 := 'VALUES  (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, ';
+sql11 := '%s, %s, %s, %s, %s, %s, %s, %s);';
+
+sqls1 := Format(sql1,[
+                QuotedStr(olah.Values['no_rujukan']),
+                QuotedStr(olah.Values['kd_ppk']),
+                QuotedStr(olah.Values['nm_ppk']),
+                QuotedStr(olah.Values['nm_kc']),
+                QuotedStr(olah.Values['kd_dati']),
+                QuotedStr(olah.Values['nm_dati']),
+                QuotedStr(olah.Values['nm_kr']),
+                QuotedStr(olah.Values['tgl_kunjungan']),
+                QuotedStr(olah.Values['nm_poli']),
+                QuotedStr(olah.Values['noka_pst']),
+                QuotedStr(olah.Values['nm_pst']),
+                QuotedStr(olah.Values['tgl_lahir']),
+                QuotedStr(olah.Values['pisa']),
+                QuotedStr(olah.Values['ket_pisa']),
+                QuotedStr(olah.Values['sex'])
+                ]);
+
+sqls11 := Format(sql11,[
+                   QuotedStr(olah.Values['diag1']),
+                   QuotedStr(olah.Values['diag2']),
+                   QuotedStr(olah.Values['diag3']),
+                   QuotedStr(olah.Values['kd_dokter']),
+                   QuotedStr(olah.Values['nm_dokter']),
+                   QuotedStr(olah.Values['m_tacc']),
+                   QuotedStr(olah.Values['alasan_tacc']),
+                   QuotedStr(olah.Values['info_denda'])
+                 ]);
+sql.Add(sql0 + sql01 + sqls1 + sqls11);
+end;
+
+procedure BridgeTool.buat_json_daftar(vtgl: TDateTime; vnomor: Integer);
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+    vbool : Boolean;
+begin
+//uDs.Last;
+   FTgl := vtgl;
+   FNomor := vnomor;
+   try
+    sql0 := 'select * from simpus2.bpjs_kunjungan where tgl = %s and nomor = %s and no_urut = 0;';
+    sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor)]);
+
+    UniQuery.Close;
+    UniQuery.SQL.Clear;
+    UniQuery.SQL.Add(sql1);
+    UniQuery.Open;
+
+    FJsonSL.Clear;
+  //  vbool := False;
+
+if not UniQuery.Eof then
+begin
+   vbool := True;
+   str0 := json_buat_awal +
+           json_data('kdProviderPeserta', UniQuery.FieldByName('kd_provider_peserta')) + json_buat_hubung +
+           json_data('tglDaftar', UniQuery.FieldByName('tgl_daftar')) + json_buat_hubung +
+           json_data('noKartu', UniQuery.FieldByName('no_kartu')) + json_buat_hubung +
+           json_data('kdPoli', UniQuery.FieldByName('kd_poli')) +  json_buat_hubung +
+           json_data('keluhan', UniQuery.FieldByName('keluhan')) + json_buat_hubung +
+           json_data('kunjSakit', UniQuery.FieldByName('kunj_sakit')) + json_buat_hubung +
+           json_data('sistole', UniQuery.FieldByName('sistole')) + json_buat_hubung +
+           json_data('diastole', UniQuery.FieldByName('diastole')) + json_buat_hubung +
+           json_data('beratBadan', UniQuery.FieldByName('berat_badan')) + json_buat_hubung +
+           json_data('tinggiBadan', UniQuery.FieldByName('tinggi_badan')) + json_buat_hubung +
+           json_data('respRate', UniQuery.FieldByName('resp_rate')) + json_buat_hubung +
+           json_data('heartRate', UniQuery.FieldByName('heart_rate')) + json_buat_hubung +
+           json_data('rujukBalik', UniQuery.FieldByName('rujuk_balik')) + json_buat_hubung +
+           json_data('rawatInap', UniQuery.FieldByName('rawat_inap')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+ end;
+
+finally
+UniQuery.Close;
+end;
+//if vbool then FJsonSL.Add('masuk') else FJsonSL.Add('koq query kosong');
+
+ //  ShowMessage('ok2');
+end;
+
+procedure BridgeTool.buat_header;
+   var xtimestamp, xsignature : string;
+begin
+xtimestamp := IntToStr(DateTimeToUnix(utcNow));
+xsignature := ambil_signature(xtimestamp);
+
+tsHeader.Clear;
+tsHeader.Add('x-cons-id:' + jsConsID);
+//memoHeader.Lines.Add('x-timestamp:' + IntToStr(DateTimeToUnix(now)));
+tsHeader.Add('x-timestamp:' + xtimestamp);
+tsHeader.Add('x-signature:' + xsignature);
+tsHeader.Add('x-authorization:Basic '+ MIMEBase64Encode(jsUserID + ':' + jsPasswd + ':095'));
+
+end;
+
+procedure BridgeTool.buat_json_kunjungan(vtgl: TDateTime; vnomor: Integer);
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//uDs.Last;
+FTgl := vtgl;
+FNomor := vnomor;
+
+   try
+    sql0 := 'select * from simpus2.bpjs_kunjungan where tgl = %s and nomor = %s and no_kunjungan is null;';
+    sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor)]);
+
+    UniQuery.Close;
+    UniQuery.SQL.Clear;
+    UniQuery.SQL.Add(sql1);
+    UniQuery.Open;
+
+    FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   str0 := json_buat_awal +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('noKartu', UniQuery.FieldByName('no_kartu')) + json_buat_hubung +
+           json_data('tglDaftar', UniQuery.FieldByName('tgl_daftar')) + json_buat_hubung +
+           json_data('keluhan', UniQuery.FieldByName('keluhan')) +  json_buat_hubung +
+           json_data('kdSadar', UniQuery.FieldByName('kd_sadar')) + json_buat_hubung +
+           json_data('sistole', UniQuery.FieldByName('sistole')) + json_buat_hubung +
+           json_data('diastole', UniQuery.FieldByName('diastole')) + json_buat_hubung +
+           json_data('beratBadan', UniQuery.FieldByName('berat_badan')) + json_buat_hubung +
+           json_data('tinggiBadan', UniQuery.FieldByName('tinggi_badan')) + json_buat_hubung +
+           json_data('respRate', UniQuery.FieldByName('resp_rate')) + json_buat_hubung +
+           json_data('heartRate', UniQuery.FieldByName('heart_rate')) + json_buat_hubung +
+           json_data('terapi', UniQuery.FieldByName('terapi')) + json_buat_hubung +
+           json_data('kdProviderRujukLanjut', UniQuery.FieldByName('kd_provider_rujuk_lanjut')) + json_buat_hubung +
+           json_data('kdStatusPulang', UniQuery.FieldByName('kd_status_pulang')) + json_buat_hubung +
+           json_data('tglPulang', UniQuery.FieldByName('tgl_pulang')) + json_buat_hubung +
+           json_data('kdDokter', UniQuery.FieldByName('kd_dokter')) + json_buat_hubung +
+           json_data('kdDiag1', UniQuery.FieldByName('kd_diag1')) + json_buat_hubung +
+           json_data('kdDiag2', UniQuery.FieldByName('kd_diag2')) + json_buat_hubung +
+           json_data('kdDiag3', UniQuery.FieldByName('kd_diag3')) + json_buat_hubung +
+           json_data('kdPoliRujukInternal', UniQuery.FieldByName('kd_poli_rujuk_internal')) + json_buat_hubung +
+           json_data('kdPoliRujukLanjut', UniQuery.FieldByName('kd_poli_rujuk_lanjut')) + json_buat_hubung +
+           json_data('kdTacc', UniQuery.FieldByName('kd_tacc')) + json_buat_hubung +
+           json_data('alasanTacc', UniQuery.FieldByName('alasan_tacc')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+ end;
+
+finally
+UniQuery.Close;
+end;
+ //  ShowMessage('ok2');
+end;
+
+procedure BridgeTool.buat_json_kunjungan_update(vtgl: TDateTime;
+  vnomor: Integer);
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//uDs.Last;
+FTgl := vtgl;
+FNomor := vnomor;
+
+   try
+    sql0 := 'select * from simpus2.bpjs_kunjungan where tgl = %s and nomor = %s;';
+    sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor)]);
+
+    UniQuery.Close;
+    UniQuery.SQL.Clear;
+    UniQuery.SQL.Add(sql1);
+    UniQuery.Open;
+
+    FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   str0 := json_buat_awal +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('noKartu', UniQuery.FieldByName('no_kartu')) + json_buat_hubung +
+           json_data('tglDaftar', UniQuery.FieldByName('tgl_daftar')) + json_buat_hubung +
+           json_data('keluhan', UniQuery.FieldByName('keluhan')) +  json_buat_hubung +
+           json_data('kdSadar', UniQuery.FieldByName('kd_sadar')) + json_buat_hubung +
+           json_data('sistole', UniQuery.FieldByName('sistole')) + json_buat_hubung +
+           json_data('diastole', UniQuery.FieldByName('diastole')) + json_buat_hubung +
+           json_data('beratBadan', UniQuery.FieldByName('berat_badan')) + json_buat_hubung +
+           json_data('tinggiBadan', UniQuery.FieldByName('tinggi_badan')) + json_buat_hubung +
+           json_data('respRate', UniQuery.FieldByName('resp_rate')) + json_buat_hubung +
+           json_data('heartRate', UniQuery.FieldByName('heart_rate')) + json_buat_hubung +
+           json_data('terapi', UniQuery.FieldByName('terapi')) + json_buat_hubung +
+           json_data('kdProviderRujukLanjut', UniQuery.FieldByName('kd_provider_rujuk_lanjut')) + json_buat_hubung +
+           json_data('kdStatusPulang', UniQuery.FieldByName('kd_status_pulang')) + json_buat_hubung +
+           json_data('tglPulang', UniQuery.FieldByName('tgl_pulang')) + json_buat_hubung +
+           json_data('kdDokter', UniQuery.FieldByName('kd_dokter')) + json_buat_hubung +
+           json_data('kdDiag1', UniQuery.FieldByName('kd_diag1')) + json_buat_hubung +
+           json_data('kdDiag2', UniQuery.FieldByName('kd_diag2')) + json_buat_hubung +
+           json_data('kdDiag3', UniQuery.FieldByName('kd_diag3')) + json_buat_hubung +
+           json_data('kdPoliRujukInternal', UniQuery.FieldByName('kd_poli_rujuk_internal')) + json_buat_hubung +
+           json_data('kdPoliRujukLanjut', UniQuery.FieldByName('kd_poli_rujuk_lanjut')) + json_buat_hubung +
+           json_data('kdTacc', UniQuery.FieldByName('kd_tacc')) + json_buat_hubung +
+           json_data('alasanTacc', UniQuery.FieldByName('alasan_tacc')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+ //FNoKunjungan := UniQuery.FieldByName('no_kunjungan').AsString;
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+ end;
+
+finally
+UniQuery.Close;
+end;
+ //  ShowMessage('ok2');
+end;
+
+function BridgeTool.buat_json_mcu(vtgl: TDateTime; vnomor: Integer) : integer;
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//uDs.Last;
+   Fidx_mcu := -1;
+   FTgl := vtgl;
+   FNomor := vnomor;
+   try
+    sql0 := 'select * from simpus2.bpjs_mcu where tgl = %s and nomor = %s and kd_mcu = 0 limit 1;';
+    sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor)]);
+
+    UniQuery.Close;
+    UniQuery.SQL.Clear;
+    UniQuery.SQL.Add(sql1);
+    UniQuery.Open;
+
+    FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   Fidx_mcu := UniQuery.FieldByName('idx').AsInteger;
+
+   str0 := json_buat_awal +
+           json_data('kdMCU', UniQuery.FieldByName('kd_mcu')) + json_buat_hubung +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('kdProvider', UniQuery.FieldByName('kd_provider')) + json_buat_hubung +
+           json_data('tglPelayanan', UniQuery.FieldByName('tgl_pelayanan')) + json_buat_hubung +
+           json_data('tekananDarahSistole', UniQuery.FieldByName('tekanan_darah_sistole')) + json_buat_hubung +
+           json_data('tekananDarahDiastole', UniQuery.FieldByName('tekanan_darah_diastole')) +  json_buat_hubung +
+           json_data('radiologiFoto', UniQuery.FieldByName('radiologi_foto')) + json_buat_hubung +
+           json_data('darahRutinHemo', UniQuery.FieldByName('darah_rutin_hemo')) + json_buat_hubung +
+           json_data('darahRutinLeu', UniQuery.FieldByName('darah_rutin_leu')) + json_buat_hubung +
+           json_data('darahRutinErit', UniQuery.FieldByName('darah_rutin_erit')) + json_buat_hubung +
+           json_data('darahRutinLaju', UniQuery.FieldByName('darah_rutin_laju')) + json_buat_hubung +
+           json_data('darahRutinHema', UniQuery.FieldByName('darah_rutin_hema')) + json_buat_hubung +
+           json_data('darahRutinTrom', UniQuery.FieldByName('darah_rutin_trom')) + json_buat_hubung +
+           json_data('lemakDarahHDL', UniQuery.FieldByName('lemak_darah_hdl')) + json_buat_hubung +
+           json_data('lemakDarahLDL', UniQuery.FieldByName('lemak_darah_ldl')) + json_buat_hubung +
+           json_data('lemakDarahChol', UniQuery.FieldByName('lemak_darah_chol')) + json_buat_hubung +
+           json_data('lemakDarahTrigli', UniQuery.FieldByName('lemak_darah_trigli')) + json_buat_hubung +
+           json_data('gulaDarahSewaktu', UniQuery.FieldByName('gula_darah_sewaktu')) + json_buat_hubung +
+           json_data('gulaDarahPuasa', UniQuery.FieldByName('gula_darah_puasa')) + json_buat_hubung +
+           json_data('gulaDarahPostPrandial', UniQuery.FieldByName('gula_darah_post_prandial')) + json_buat_hubung +
+           json_data('gulaDarahHbA1c', UniQuery.FieldByName('gula_darah_hba1c')) + json_buat_hubung +
+           json_data('fungsiHatiSGOT', UniQuery.FieldByName('fungsi_hati_sgot')) + json_buat_hubung +
+           json_data('fungsiHatiSGPT', UniQuery.FieldByName('fungsi_hati_sgpt')) + json_buat_hubung +
+           json_data('fungsiHatiGamma', UniQuery.FieldByName('fungsi_hati_gamma')) + json_buat_hubung +
+           json_data('fungsiHatiProtKual', UniQuery.FieldByName('fungsi_hati_prot_kual')) + json_buat_hubung +
+           json_data('fungsiHatiAlbumin', UniQuery.FieldByName('fungsi_hati_albumin')) + json_buat_hubung +
+           json_data('fungsiGinjalCrea', UniQuery.FieldByName('fungsi_ginjal_crea')) + json_buat_hubung +
+           json_data('fungsiGinjalUreum', UniQuery.FieldByName('fungsi_ginjal_ureum')) + json_buat_hubung +
+           json_data('fungsiGinjalAsam', UniQuery.FieldByName('fungsi_ginjal_asam')) + json_buat_hubung +
+           json_data('fungsiJantungABI', UniQuery.FieldByName('fungsi_jantung_abi')) + json_buat_hubung +
+           json_data('fungsiJantungEKG', UniQuery.FieldByName('fungsi_jantung_ekg')) + json_buat_hubung +
+           json_data('fungsiJantungEcho', UniQuery.FieldByName('fungsi_jantung_echo')) + json_buat_hubung +
+           json_data('funduskopi', UniQuery.FieldByName('funduskopi')) + json_buat_hubung +
+           json_data('pemeriksaanLain', UniQuery.FieldByName('pemeriksaan_lain')) + json_buat_hubung +
+           json_data('keterangan', UniQuery.FieldByName('keterangan')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+ end;
+
+finally
+UniQuery.Close;
+end;
+ //  ShowMessage('ok2');
+ result := fidx_mcu;
+end;
+
+procedure BridgeTool.buat_json_mcu_update(vtgl: TDateTime; vnomor: Integer; vkd_mcu : integer);
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//uDs.Last;
+   FTgl := vtgl;
+   FNomor := vnomor;
+   try
+    sql0 := 'select * from simpus2.bpjs_mcu where tgl = %s and nomor = %s and kd_mcu = %s;';
+    sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor), IntToStr(vkd_mcu)]);
+
+    UniQuery.Close;
+    UniQuery.SQL.Clear;
+    UniQuery.SQL.Add(sql1);
+    UniQuery.Open;
+
+    FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   str0 := json_buat_awal +
+           json_data('kdMCU', UniQuery.FieldByName('kd_mcu')) + json_buat_hubung +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('kdProvider', UniQuery.FieldByName('kd_provider')) + json_buat_hubung +
+           json_data('tglPelayanan', UniQuery.FieldByName('tgl_pelayanan')) + json_buat_hubung +
+           json_data('tekananDarahSistole', UniQuery.FieldByName('tekanan_darah_sistole')) + json_buat_hubung +
+           json_data('tekananDarahDiastole', UniQuery.FieldByName('tekanan_darah_diastole')) +  json_buat_hubung +
+           json_data('radiologiFoto', UniQuery.FieldByName('radiologi_foto')) + json_buat_hubung +
+           json_data('darahRutinHemo', UniQuery.FieldByName('darah_rutin_hemo')) + json_buat_hubung +
+           json_data('darahRutinLeu', UniQuery.FieldByName('darah_rutin_leu')) + json_buat_hubung +
+           json_data('darahRutinErit', UniQuery.FieldByName('darah_rutin_erit')) + json_buat_hubung +
+           json_data('darahRutinLaju', UniQuery.FieldByName('darah_rutin_laju')) + json_buat_hubung +
+           json_data('darahRutinHema', UniQuery.FieldByName('darah_rutin_hema')) + json_buat_hubung +
+           json_data('darahRutinTrom', UniQuery.FieldByName('darah_rutin_trom')) + json_buat_hubung +
+           json_data('lemakDarahHDL', UniQuery.FieldByName('lemak_darah_hdl')) + json_buat_hubung +
+           json_data('lemakDarahLDL', UniQuery.FieldByName('lemak_darah_ldl')) + json_buat_hubung +
+           json_data('lemakDarahChol', UniQuery.FieldByName('lemak_darah_chol')) + json_buat_hubung +
+           json_data('lemakDarahTrigli', UniQuery.FieldByName('lemak_darah_trigli')) + json_buat_hubung +
+           json_data('gulaDarahSewaktu', UniQuery.FieldByName('gula_darah_sewaktu')) + json_buat_hubung +
+           json_data('gulaDarahPuasa', UniQuery.FieldByName('gula_darah_puasa')) + json_buat_hubung +
+           json_data('gulaDarahPostPrandial', UniQuery.FieldByName('gula_darah_post_prandial')) + json_buat_hubung +
+           json_data('gulaDarahHbA1c', UniQuery.FieldByName('gula_darah_hba1c')) + json_buat_hubung +
+           json_data('fungsiHatiSGOT', UniQuery.FieldByName('fungsi_hati_sgot')) + json_buat_hubung +
+           json_data('fungsiHatiSGPT', UniQuery.FieldByName('fungsi_hati_sgpt')) + json_buat_hubung +
+           json_data('fungsiHatiGamma', UniQuery.FieldByName('fungsi_hati_gamma')) + json_buat_hubung +
+           json_data('fungsiHatiProtKual', UniQuery.FieldByName('fungsi_hati_prot_kual')) + json_buat_hubung +
+           json_data('fungsiHatiAlbumin', UniQuery.FieldByName('fungsi_hati_albumin')) + json_buat_hubung +
+           json_data('fungsiGinjalCrea', UniQuery.FieldByName('fungsi_ginjal_crea')) + json_buat_hubung +
+           json_data('fungsiGinjalUreum', UniQuery.FieldByName('fungsi_ginjal_ureum')) + json_buat_hubung +
+           json_data('fungsiGinjalAsam', UniQuery.FieldByName('fungsi_ginjal_asam')) + json_buat_hubung +
+           json_data('fungsiJantungABI', UniQuery.FieldByName('fungsi_jantung_abi')) + json_buat_hubung +
+           json_data('fungsiJantungEKG', UniQuery.FieldByName('fungsi_jantung_ekg')) + json_buat_hubung +
+           json_data('fungsiJantungEcho', UniQuery.FieldByName('fungsi_jantung_echo')) + json_buat_hubung +
+           json_data('funduskopi', UniQuery.FieldByName('funduskopi')) + json_buat_hubung +
+           json_data('pemeriksaanLain', UniQuery.FieldByName('pemeriksaan_lain')) + json_buat_hubung +
+           json_data('keterangan', UniQuery.FieldByName('keterangan')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+ end;
+
+finally
+UniQuery.Close;
+end;
+ //  ShowMessage('ok2');
+end;
+
+function BridgeTool.buat_json_obat(vtgl : TDateTime; vnomor : Integer) : Integer;
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//uDs.Last;
+   FTgl := vtgl;
+   FNomor := vnomor;
+   sql0 := 'select * from simpus2.bpjs_obat where tgl = %s and nomor = %s and kd_obat_sk = 0 limit 1';
+   sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor)]);
+
+   UniQuery.Close;
+   UniQuery.SQL.Clear;
+   UniQuery.SQL.Add(sql1);
+   UniQuery.Open;
+
+    Fidx_obat := 0;
+
+    FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   Fidx_obat := UniQuery.FieldByName('idx').AsInteger;
+   str0 := json_buat_awal +
+           json_data('kdObatSK', UniQuery.FieldByName('kd_obat_sk')) + json_buat_hubung +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('kdRacikan', UniQuery.FieldByName('kd_racikan')) + json_buat_hubung +
+           json_data('obatDPHO', UniQuery.FieldByName('obat_dpho')) +  json_buat_hubung +
+           json_data('kdObat', UniQuery.FieldByName('kd_obat')) + json_buat_hubung +
+           json_data('signa1', UniQuery.FieldByName('signa1')) + json_buat_hubung +
+           json_data('signa2', UniQuery.FieldByName('signa2')) + json_buat_hubung +
+           json_data('jmlObat', UniQuery.FieldByName('jml_obat')) + json_buat_hubung +
+           json_data('jmlPermintaan', UniQuery.FieldByName('jml_permintaan')) + json_buat_hubung +
+           json_data('nmObatNonDPHO', UniQuery.FieldByName('nm_obat_non_dpho')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+
+ end;
+ UniQuery.Close;
+ //  ShowMessage('ok2');
+ Result := Fidx_obat;
+end;
+
+function BridgeTool.buat_json_tindakan(vtgl : TDateTime; vnomor : Integer): integer;
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//UniQuery.Last;
+   FTgl := vtgl;
+   FNomor := vnomor;
+
+   sql0 := 'select * from simpus2.bpjs_tindakan where tgl = %s and nomor = %s and kd_tindakan_sk = %s limit 1';
+   sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor), QuotedStr('0')]);
+
+   UniQuery.Close;
+   UniQuery.SQL.Clear;
+   UniQuery.SQL.Add(sql1);
+   UniQuery.Open;
+
+   Fidx_tindakan := 0;
+
+   FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   Fidx_tindakan := UniQuery.FieldByName('idx').AsInteger;
+   str0 := json_buat_awal +
+           json_data('kdTindakanSK', UniQuery.FieldByName('kd_tindakan_sk')) + json_buat_hubung +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('kdTindakan', UniQuery.FieldByName('kd_tindakan')) + json_buat_hubung +
+           json_data('biaya', UniQuery.FieldByName('biaya')) +  json_buat_hubung +
+           json_data('keterangan', UniQuery.FieldByName('keterangan')) + json_buat_hubung +
+           json_data('hasil', UniQuery.FieldByName('hasil')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+
+ end;
+
+ UniQuery.Close;
+ //  ShowMessage('ok2');
+ Result := Fidx_tindakan;
+end;
+
+function BridgeTool.buat_json_tindakan_update(vtgl: TDateTime;
+  vnomor: Integer; vidx : integer): integer;
+var js : TlkJSONobject;
+    jsNull : TlkJSONnull;
+    str0, str1, sql0, sql1 : string;
+    i : Integer;
+begin
+//UniQuery.Last;
+   FTgl := vtgl;
+   FNomor := vnomor;
+
+   sql0 := 'select * from simpus2.bpjs_tindakan where tgl = %s and nomor = %s and idx = %s limit 1';
+   sql1 := Format(sql0, [QuotedStr(FormatDateTime('YYYY-MM-DD', vtgl)), IntToStr(vnomor), IntToStr(vidx)]);
+
+   UniQuery.Close;
+   UniQuery.SQL.Clear;
+   UniQuery.SQL.Add(sql1);
+   UniQuery.Open;
+
+   Fidx_tindakan := 0;
+
+   FJsonSL.Clear;
+
+if not UniQuery.Eof then
+begin
+   Fidx_tindakan := UniQuery.FieldByName('idx').AsInteger;
+   str0 := json_buat_awal +
+           json_data('kdTindakanSK', UniQuery.FieldByName('kd_tindakan_sk')) + json_buat_hubung +
+           json_data('noKunjungan', UniQuery.FieldByName('no_kunjungan')) + json_buat_hubung +
+           json_data('kdTindakan', UniQuery.FieldByName('kd_tindakan')) + json_buat_hubung +
+           json_data('biaya', UniQuery.FieldByName('biaya')) +  json_buat_hubung +
+           json_data('keterangan', UniQuery.FieldByName('keterangan')) + json_buat_hubung +
+           json_data('hasil', UniQuery.FieldByName('hasil')) +
+           json_buat_akhir;
+   //FJsonSL.Add(str0);
+ //  ShowMessage('ok');
+   js := TlkJSON.ParseText(str0) as TlkJSONobject;
+    i := 0;
+   str1 := GenerateReadableText(js, i);
+   FJsonSL.Add(str1);
+
+ end;
+
+ UniQuery.Close;
+ //  ShowMessage('ok2');
+ Result := Fidx_tindakan;
+end;
+
+constructor BridgeTool.create;
+var js : TlkJSONobject;
+begin
+  getparam;
+
+
+   streamData := TMemoryStream.Create;
+   FJsonSL := TStringList.Create;
+   tsHeader := TStringList.Create;
+   tsResponse := TStringList.Create;
+   FScriptSQL := TStringList.Create;
+
+
+    UniConnection := TUniConnection.Create(nil);
+    UniConnection.Server := pghost;
+    UniConnection.Database := pgdb;
+    UniConnection.Port := StrToInt(pgport);
+    UniConnection.Username := pguser;
+    UniConnection.Password := pgpasswd;
+    UniConnection.ProviderName := 'PostgreSQL';
+//    UniConnection.ConnectString:='Provider Name=PostgreSQL;Data Source=localhost;Database=simpusdb;User ID=dkkuser;Password=nganggodkk;Login Prompt=False;Pooling=True;Validate Connection=True';
+    UniConnection.Connected:=true;
+
+    UniQuery := TUniQuery.Create(nil);
+    UniQuery.Connection := UniConnection;
+
+    UniSQL := TUniSQL.Create(nil);
+    UniSQL.Connection := UniConnection;
+
+end;
+
+function BridgeTool.delete_dummi(uri_tambahan: string): boolean;
+var vlev : Integer;
+  vJsonObj: TlkJsonObject;
+  s0, s1, uri_jadi : String;
+  vJsonTs : TDateTime;
+  adl_berhasil : Boolean;
+
+begin
+  buat_header;
+
+  tsResponse.Clear;
+//  memoData.Clear;
+
+  adl_berhasil := httpDelete(uri_base + uri_tambahan , tsHeader , tsResponse);
+
+
+  if adl_berhasil then
+  begin
+  vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+//  TlkJSONobject.ParseText(ts.Text);
+  vlev := 0;
+  s0 := GenerateReadableText(vJsonObj, vlev);
+  tsResponse.Clear;
+  tsResponse.Add(s0);
+  end;
+   Result := adl_berhasil;
+end;
+
+
+function BridgeTool.delete_kunjungan(v_noKunjungan: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/kunjungan/'+ v_noKunjungan;
+Result := delete_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.delete_mcu(v_kdMCU, v_noKunjungan: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/mcu/' + v_kdMCU + '/kunjungan/' + v_noKunjungan;
+Result := delete_dummi(uriStr);
+if Result then
+begin
+hasil.Assign(tsResponse);
+update_sk_mcu_pasca_delete(v_kdMCU, v_noKunjungan);
+end;
+end;
+
+function BridgeTool.delete_obat(v_kdObatSK, v_noKunjungan: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/obat/' + v_kdObatSK + '/kunjungan/' + v_noKunjungan;
+Result := delete_dummi(uriStr);
+if Result then
+begin
+hasil.Assign(tsResponse);
+update_sk_obat_pasca_delete(v_kdObatSK, v_noKunjungan);
+end;
+end;
+
+function BridgeTool.delete_pendaftaran(v_noKartu: string; tglDaftar: TDateTime;
+  v_noUrut: string; hasil: TStrings): Boolean;
+var vtglStr, uriStr : string;
+begin
+vtglStr := FormatDateTime('DD-MM-YYYY', tglDaftar);
+uriStr := '/v1/pendaftaran/peserta/' + v_noKartu + '/tglDaftar/' + vtglStr + '/noUrut/' + v_noUrut;
+Result := delete_dummi(uriStr);
+if Result then
+begin
+hasil.Assign(tsResponse);
+end;
+end;
+
+function BridgeTool.delete_tindakan(v_kdTindakanSK, v_noKunjungan: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/tindakan/' + v_kdTindakanSK + '/kunjungan/' + v_noKunjungan;
+Result := delete_dummi(uriStr);
+if Result then
+begin
+hasil.Assign(tsResponse);
+update_sk_tindakan_pasca_delete(v_kdTindakanSK, v_noKunjungan);
+end;
+end;
+
+destructor BridgeTool.destroy;
+begin
+if Assigned(FJsonSL) then FreeAndNil(FJsonSL);
+if Assigned(tsHeader) then FreeAndNil(tsHeader);
+//if Assigned(streamData) then FreeAndNil(streamData);
+if Assigned(tsResponse) then FreeAndNil(tsResponse);
+if Assigned(streamData) then FreeAndNil(streamData);
+if Assigned(FScriptSQL) then FreeAndNil(FScriptSQL);
+
+UniSQL.Free;
+UniQuery.Free;
+UniConnection.Free;
+
+inherited;
+
+end;
+
+
+procedure BridgeTool.eksekusi_script;
+begin
+UniScript := TUniScript.Create(nil);
+UniScript.Connection := UniConnection;
+try
+  UniScript.SQL.Assign(FScriptSQL);
+  UniScript.Execute;
+finally
+UniScript.Free;
+end;
+end;
+
+procedure BridgeTool.getparam;
+var js, jspg, jsbpjs : TlkJSONobject;
+begin
+js := uLkJSON.TlkJSONstreamed.LoadFromFile('param.json') as TlkJSONobject;
+//serialX := Cipher1.DecodeString('15754', js.getString('serial'));
+
+jspg := js.Field['pg'] as TlkJSONobject;
+pghost := jspg.getString('pghost');
+pgdb := jspg.getString('pgdb');
+pgport := jspg.getString('pgport');
+pguser:= DecodeData(jspg.getString('pguser'), keyTototo);
+pgpasswd := DecodeData(jspg.getString('pgpasswd'), keyTototo);
+
+
+// BPJS
+jsbpjs := js.Field['bpjs'] as TlkJSONobject;
+  FUri := jsbpjs.getString('base_uri');
+  jsConsID := DecodeData(jsbpjs.getString('consid'), keyTototo);
+  jsKeyID := DecodeData(jsbpjs.getString('key'), keyTototo);
+  jsUserID := jsbpjs.getString('userid');
+  jsPasswd := DecodeData(jsbpjs.getString('passwd'), keyTototo);
+
+
+js.Free;
+end;
+
+function BridgeTool.get_diagnosa (hasil : TStrings; kata_kunci : string = 'a'; awal : Integer = 0; limit : Integer = 20000): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/diagnosa/'+ kata_kunci + '/' + IntToStr(awal) + '/' + IntToStr(limit);
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_dokter (hasil : TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/dokter/0/100';
+Result := get_dummi(uriStr);
+if Result then
+begin
+  hasil.Assign(tsResponse);
+end;
+end;
+
+function BridgeTool.get_dummi(uri_tambahan: string): boolean;
+var vlev : Integer;
+  vJsonObj: TlkJsonObject;
+  s0, s1, uri_jadi : String;
+  vJsonTs : TDateTime;
+  adl_berhasil : Boolean;
+
+begin
+  buat_header;
+
+  tsResponse.Clear;
+//  memoData.Clear;
+
+  adl_berhasil := httpGet(uri_base + uri_tambahan , tsHeader , tsResponse);
+
+
+  if adl_berhasil then
+  begin
+
+  vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+//  TlkJSONobject.ParseText(ts.Text);
+  vlev := 0;
+  s0 := GenerateReadableText(vJsonObj, vlev);
+  tsResponse.Clear;
+  tsResponse.Add(s0);
+
+  end;
+   Result := adl_berhasil;
+
+end;
+
+
+function BridgeTool.get_kesadaran(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/kesadaran';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_mcu(v_noKunjungan: string; hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v2/mcu/kunjungan/'+ v_noKunjungan;
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_obat(hasil : TStrings; kata_kunci : string = 'a';  awal : Integer = 0; limit : Integer = 5000): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/obat/dpho/'+ kata_kunci + '/' + IntToStr(awal) + '/' + IntToStr(limit);
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_obat_by_kunjungan(v_noKunjungan: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/obat/kunjungan/'+ v_noKunjungan;
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_pendaftaran_by_urut(v_noUrut: string; vtgl: TDateTime;
+  hasil: TStrings): Boolean;
+var vtglStr, uriStr : string;
+begin
+vtglStr := FormatDateTime('DD-MM-YYYY', vtgl);
+uriStr := '/v1/pendaftaran/noUrut/' + v_noUrut + '/tglDaftar/' + vtglStr;
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_pendaftaran_provider(hasil: TStrings;
+  tglDaftar: TDateTime; awal, limit: Integer): Boolean;
+var vtglStr, uriStr : string;
+begin
+vtglStr := FormatDateTime('DD-MM-YYYY', tglDaftar);
+uriStr := '/v1/pendaftaran/tglDaftar/' + vtglStr + '/' + IntToStr(awal) + '/' + IntToStr(limit);
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_peserta(v_noKartu: string; hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v2/peserta/'+ v_noKartu;
+Result := get_dummi(uriStr);
+if Result then
+begin
+hasil.Assign(tsResponse);
+//ambil_peserta;
+end else
+begin
+  tsResponse.Add('gagal');
+  hasil.Assign(tsResponse);
+end;
+end;
+
+function BridgeTool.get_poli_fktl(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/poli/fktl/0/120';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_poli_fktp(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/poli/fktp/0/50';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_provider(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/provider/0/200';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_riwayat_kunjungan(v_noKartu: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/kunjungan/peserta/'+ v_noKartu;
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_rujukan(v_noKunjungan: string; hasil : TStrings): Boolean;
+var uriStr : string;
+begin
+FNoKunjungan := v_noKunjungan;
+uriStr := '/v2/kunjungan/rujukan/'+ v_noKunjungan;
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_statuspulang_inap(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/statuspulang/rawatInap/true';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_statuspulang_jalan(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/statuspulang/rawatInap/false';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_tindakan(hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/tindakan/0/200';
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.get_tindakan_by_kunjungan(v_noKunjungan: string;
+  hasil: TStrings): Boolean;
+var uriStr : string;
+begin
+uriStr := '/v1/tindakan/kunjungan/' + v_noKunjungan;
+Result := get_dummi(uriStr);
+if Result then hasil.Assign(tsResponse);
+end;
+
+function BridgeTool.post_pendaftaran(data_load: TStrings; hasil : TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+    uri_tambahan : string;
+begin
+ isCreated := False;
+ FNoUrut := '0';
+ uri_tambahan := '/v1/pendaftaran';
+ Result := post_dummi(uri_tambahan, data_load);
+ if Result then
+begin
+ hasil.Assign(tsResponse);
+ if hasil.Count > 2 then
+begin
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := strData = 'CREATED';
+end;
+ if isCreated then
+ begin
+ FNoUrut := js.FieldByIndex[0].Field['message'].Value;
+ update_no_urut;
+ end;
+end;
+end;
+
+function BridgeTool.post_tindakan(data_load, hasil: TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+    uri_tambahan : string;
+begin
+ FkdTindakanSK := '0';
+ uri_tambahan := '/v1/tindakan';
+ Result := post_dummi(uri_tambahan, data_load);
+ if Result then
+begin
+ hasil.Assign(tsResponse);
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := strData = 'CREATED';
+ if isCreated then
+ begin
+    FkdTindakanSK := js.FieldByIndex[0].Field['message'].Value;
+    update_sk_tindakan;
+ end;
+end;
+end;
+
+function BridgeTool.post_dummi(uri_tambahan: string; data_load : TStrings): boolean;
+var vlev : Integer;
+  vJsonObj: TlkJsonObject;
+  s0, s1, uri_jadi : String;
+  vJsonTs : TDateTime;
+  adl_berhasil : Boolean;
+
+begin
+  buat_header;
+  uri_jadi := uri_base + uri_tambahan;
+  tsResponse.Clear;
+//  memoData.Clear;
+
+  streamData.Clear;
+  data_load.SaveToStream(streamData);
+
+  adl_berhasil := httpPost(uri_jadi , tsHeader, streamData , tsResponse);
+
+  if adl_berhasil then
+  begin
+  vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+//  TlkJSONobject.ParseText(ts.Text);
+  vlev := 0;
+  s0 := GenerateReadableText(vJsonObj, vlev);
+  tsResponse.Clear;
+  tsResponse.Add(s0);
+  end;
+
+  Result := adl_berhasil;
+end;
+
+function BridgeTool.post_kunjungan(data_load: TStrings; hasil : TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+begin
+ isCreated := False;
+ Result := post_dummi('/v2/kunjungan', data_load);
+if Result then
+begin
+ hasil.Assign(tsResponse);
+ if hasil.Count > 2 then
+begin
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := strData = 'CREATED';
+end;
+ if isCreated then
+ begin
+ FNokunjungan := js.FieldByIndex[0].Field['message'].Value;
+ update_no_kunjungan;
+ end;
+end;
+end;
+
+function BridgeTool.post_mcu(data_load, hasil: TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+    uri_tambahan : string;
+begin
+ isCreated := False;
+ FkdMCU := '0';
+ uri_tambahan := '/v2/mcu';
+ Result := post_dummi(uri_tambahan, data_load);
+ if Result then
+begin
+ //tsResponse.Add('tambahanku');
+ hasil.Assign(tsResponse);
+ if hasil.Count > 2 then
+ begin
+
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := strData = 'CREATED';
+ end;
+ if isCreated then
+ begin
+ FkdMCU := js.FieldByIndex[0].Field['message'].Value;
+ update_kd_mcu;
+ end;
+end else
+begin
+  tsResponse.Add('nggak konek');
+  hasil.Assign(tsResponse);
+end;
+end;
+
+function BridgeTool.post_obat(data_load, hasil: TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+    uri_tambahan : string;
+    i, iCount : Integer;
+begin
+ FkdObatSK := '';
+ FkdRacikan := '';
+ uri_tambahan := '/v1/obat/kunjungan';
+ Result := post_dummi(uri_tambahan, data_load);
+ if Result then
+begin
+ isCreated := False;
+ hasil.Assign(tsResponse);
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := strData = 'CREATED';
+ if isCreated then
+begin
+ FkdObatSK := js.Field['response'].Child[0].Field['message'].Value;
+ if js.Field['response'].Child[1].Field['message'].SelfType = jsNull then
+ FkdRacikan := '' else FkdRacikan := js.Field['response'].Child[1].Field['message'].Value;
+
+ update_sk_obat;
+ end;
+end;
+end;
+
+function BridgeTool.put_kunjungan(data_load, hasil: TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+begin
+ Result := put_dummi('/v2/kunjungan', data_load);
+if Result then
+begin
+ hasil.Assign(tsResponse);
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := upperCase(strData) = 'OK';
+ if isCreated then update_no_kunjungan0;
+    
+end;
+end;
+
+function BridgeTool.put_mcu(data_load, hasil: TStrings): Boolean;
+var js, jsMetaData : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+begin
+ Result := put_dummi('/v2/mcu', data_load);
+if Result then
+begin
+ hasil.Assign(tsResponse);
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+ jsMetaData := js.Field['metaData'] as TlkJSONobject;
+ //if jsMetaData.SelfType = jsObject then
+ 
+     strData := jsMetaData.getString('message');
+     isCreated := upperCase(strData) = 'OK';
+end;
+end;
+
+function BridgeTool.put_tindakan(data_load, hasil: TStrings): Boolean;
+var js : TlkJSONobject;
+    strKey, strData : string;
+    isCreated : Boolean;
+begin
+ Result := put_dummi('/v1/tindakan', data_load);
+if Result then
+begin
+ hasil.Assign(tsResponse);
+ js := tlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+     strData := js.FieldByIndex[1].Field['message'].Value;
+     isCreated := upperCase(strData) = 'OK';
+ if isCreated then
+ begin
+    FkdTindakanSK := js.FieldByIndex[0].Field['message'].Value;
+    update_sk_tindakan;
+ end;
+     
+end;
+end;
+
+procedure BridgeTool.update_kd_mcu;
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_mcu set kd_mcu = %s where tgl = %s and nomor = %s and idx = %s;';
+  sql1 := Format(sql0, [
+                        FkdMCU,
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor),
+                        IntToStr(Fidx_mcu) ]);
+
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_no_kunjungan;
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_kunjungan set bpjs_kunjungan = current_timestamp, no_kunjungan = %s where tgl = %s and nomor = %s;';
+  sql1 := Format(sql0, [
+                        QuotedStr(FNoKunjungan),
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor) ]);
+
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_no_kunjungan0;
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_kunjungan set bpjs_kunjungan = current_timestamp where tgl = %s and nomor = %s;';
+  sql1 := Format(sql0, [
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor) ]);
+
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_no_urut;
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_kunjungan set bpjs_daftar = current_timestamp, no_urut = %s where tgl = %s and nomor = %s;';
+  sql1 := Format(sql0, [
+                        FNoUrut,
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor) ]);
+
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_sk_mcu_pasca_delete(kd_mcu, no_kunjungan: string);
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_mcu set kd_mcu = 0 where kd_mcu = %s and no_kunjungan = %s;';
+  sql1 := Format(sql0, [
+                        QuotedStr(kd_mcu),
+                        QuotedStr(no_kunjungan) ]);
+
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_sk_obat;
+var sql0, sql1 : string;
+begin
+  if FkdRacikan='' then
+begin
+  sql0 := 'update simpus2.bpjs_obat set kd_obat_sk = %s where tgl = %s and nomor = %s and idx = %s;';
+  sql1 := Format(sql0, [
+                        QuotedStr(FkdObatSK),
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor),
+                        IntToStr(Fidx_obat) ]);
+end else
+begin
+  sql0 := 'update simpus2.bpjs_obat set kd_obat_sk = %s, kd_racikan = %s  where tgl = %s and nomor = %s and idx = %s;';
+  sql1 := Format(sql0, [
+                        QuotedStr(FkdObatSK),
+                        QuotedStr(FkdRacikan),
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor),
+                        IntToStr(Fidx_obat) ]);
+
+end;
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_sk_obat_pasca_delete( kd_obat_sk : string; no_kunjungan : string);
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_obat set kd_obat_sk = 0 where kd_obat_sk = %s and no_kunjungan = %s;';
+  sql1 := Format(sql0, [
+                        kd_obat_sk,
+                        QuotedStr(no_kunjungan) ]);
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_sk_tindakan;
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_tindakan set kd_tindakan_sk = %s where tgl = %s and nomor = %s and idx = %s;';
+  sql1 := Format(sql0, [
+                        FkdTindakanSK,
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', FTgl)),
+                        IntToStr(FNomor),
+                        IntToStr(Fidx_tindakan) ]);
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+procedure BridgeTool.update_sk_tindakan_pasca_delete(kd_tindakan_sk,
+  no_kunjungan: string);
+var sql0, sql1 : string;
+begin
+  sql0 := 'update simpus2.bpjs_tindakan set kd_tindakan_sk = 0 where kd_tindakan_sk = %s and no_kunjungan = %s;';
+  sql1 := Format(sql0, [
+                        QuotedStr(kd_tindakan_sk),
+                        QuotedStr(no_kunjungan) ]);
+                     //   memoOlah.Lines.Add(sql1);
+
+  UniSQL.SQL.Clear;
+  UniSQL.SQL.Add(sql1);
+  UniSQL.Execute;
+end;
+
+function BridgeTool.put_dummi(uri_tambahan: string;
+  data_load: TStrings): boolean;
+var vlev : Integer;
+  vJsonObj: TlkJsonObject;
+  s0, s1, uri_jadi : String;
+  vJsonTs : TDateTime;
+  adl_berhasil : Boolean;
+
+begin
+  buat_header;
+  uri_jadi := uri_base + uri_tambahan;
+  tsResponse.Clear;
+//  memoData.Clear;
+
+  streamData.Clear;
+  data_load.SaveToStream(streamData);
+
+  adl_berhasil := httpPut(uri_jadi , tsHeader, streamData , tsResponse);
+
+  if adl_berhasil then
+  begin
+  vJsonObj := TlkJSON.ParseText(tsResponse.Text) as TlkJSONobject;
+//  TlkJSONobject.ParseText(ts.Text);
+  vlev := 0;
+  s0 := GenerateReadableText(vJsonObj, vlev);
+  tsResponse.Clear;
+  tsResponse.Add(s0);
+  end;
+
+  Result := adl_berhasil;
+end;
+
+end.

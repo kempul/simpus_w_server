@@ -1,0 +1,151 @@
+unit ICDXCariu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, DBGridEhGrouping, ToolCtrlsEh,
+  DBGridEhToolCtrls, GridsEh, DBAxisGridsEh, DBGridEh, DynVarsEh,
+  ComCtrls, JvExComCtrls, JvComCtrls, JvBaseDlg, JvProgressDialog, EhLibVCL,
+  brDiagnosaU;
+
+type
+  TForm1_ICDXCari = class(TForm)
+    panel2: TPanel;
+    btn1: TBitBtn;
+    grid1: TDBGridEh;
+    btn2: TBitBtn;
+    lblICDX: TLabel;
+    lblPenyakit: TLabel;
+    chkNonSpesialis: TCheckBox;
+    pageControl1: TJvPageControl;
+    ts1: TTabSheet;
+    ts2: TTabSheet;
+    memoResponse: TMemo;
+    memoData: TMemo;
+    pb1: TJvProgressDialog;
+    pnl1: TPanel;
+    pnl2: TPanel;
+    label2: TLabel;
+    edit2: TEdit;
+    btn5: TButton;
+    btn4: TButton;
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure grid1DblClick(Sender: TObject);
+    procedure grid1KeyPress(Sender: TObject; var Key: Char);
+    procedure btn1Click(Sender: TObject);
+    procedure pb1Progress(Sender: TObject; var AContinue: Boolean);
+    procedure btn4Click(Sender: TObject);
+    procedure btn5Click(Sender: TObject);
+    procedure edit2KeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+    ABridge : brDiagnosa;
+    procedure buka_data;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_ICDXCari: TForm1_ICDXCari;
+
+implementation
+
+uses
+  dmpelayanan, aau111, icdxCaridiPcareU;
+
+{$R *.dfm}
+
+procedure TForm1_ICDXCari.btn4Click(Sender: TObject);
+begin
+Form1_icdxCariDiPCARE.ShowModal;
+if Form1_icdxCariDiPCARE.ModalResult = mrOK then
+begin
+try
+   edit2.Text := Form1_icdxCariDiPCARE.labelEdit1.Text;
+   pb1.Show;
+   ABridge := brDiagnosa.create;
+   try
+   pb1.Position := pb1.Position + pb1.Interval;
+   if ABridge.getDiagnosa(Form1_icdxCariDiPCARE.labelEdit1.Text, '0', '100') then
+   begin
+     ShowMessage('bpjs ok');
+   end else ShowMessage('bpjs gagal');
+   finally
+     ABridge.Free;
+   end;
+   pb1.Hide;
+finally
+buka_data;
+grid1.SetFocus;
+end;
+end;
+
+end;
+
+procedure TForm1_ICDXCari.btn5Click(Sender: TObject);
+begin
+buka_data;
+end;
+
+procedure TForm1_ICDXCari.buka_data;
+begin
+
+with dataPelayanan do
+begin
+  fdQueryCariIdcx.Close;
+  fdQueryCariIdcx.Prepare;
+  fdQueryCariIdcx.ParamByName('paramicdx').AsString := '%' + edit2.Text + '%';
+  fdQueryCariIdcx.Open;
+end;
+
+end;
+
+procedure TForm1_ICDXCari.edit2KeyPress(Sender: TObject; var Key: Char);
+begin
+if key = Chr(13) then btn5.Click;
+
+end;
+
+procedure TForm1_ICDXCari.btn1Click(Sender: TObject);
+begin
+
+lblICDX.Caption := dataPelayanan.fdQueryCariIdcx.FieldByName('kd_diag').AsString;
+lblPenyakit.Caption := dataPelayanan.fdQueryCariIdcx.FieldByName('nm_diag').AsString;
+chkNonSpesialis.Checked := dataPelayanan.fdQueryCariIdcx.FieldByName('non_spesialis').AsBoolean;
+end;
+
+procedure TForm1_ICDXCari.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  grid1.SaveColumnsLayoutIni(Form111.MyIni, Name, True);
+//  dataPelayanan.qICDXCari.Close;
+end;
+
+procedure TForm1_ICDXCari.FormShow(Sender: TObject);
+begin
+grid1.RestoreColumnsLayoutIni(Form111.MyIni, Name, [crpColWidthsEh]);
+//buka_data;
+end;
+
+procedure TForm1_ICDXCari.grid1DblClick(Sender: TObject);
+begin
+btn1.Click;
+end;
+
+procedure TForm1_ICDXCari.grid1KeyPress(Sender: TObject; var Key: Char);
+begin
+if Key = #13 then
+begin
+btn1.Click;
+end;
+
+end;
+
+procedure TForm1_ICDXCari.pb1Progress(Sender: TObject; var AContinue: Boolean);
+begin
+Application.ProcessMessages;
+end;
+
+end.

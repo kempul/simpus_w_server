@@ -1,0 +1,1228 @@
+unit pasienKunjunganu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, ComCtrls,
+  JvExComCtrls, JvDateTimePicker, JvEdit, JvCheckBox, JvMemo, Pipes, DynVarsEh, pngimage,
+  ImgList, JvCtrls, JvToolEdit, JvSplit, ActnList, ToolWin, JvToolBar,
+  JvComCtrls, JvBaseDlg, JvProgressDialog, bridgeClassU, System.Actions,
+  EhLibVCL, brPesertaU;
+
+type
+  tPeserta = brPeserta;
+  TBridge = BridgeTool;
+  TForm1_pasienKunjungan = class(TForm)
+    panelUtama: TJvPanel;
+    panelUtama1: TJvPanel;
+    JvPanel2: TJvPanel;
+    JvBevel1: TJvBevel;
+    PipeClient1: TPipeClient;
+    frxdb1Cetak: TfrxDBDataset;
+    frxdb1KK: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    btn_pasienAdd: TJvTransparentButton;
+    btn_close: TJvTransparentButton;
+    panel2: TPanel;
+    grid1: TDBGridEh;
+    panel5: TPanel;
+    lbl20: TLabel;
+    dtPicker1: TJvDateTimePicker;
+    lbl23: TLabel;
+    editMR: TEdit;
+    btn1: TSpeedButton;
+    btnCariPasien: TSpeedButton;
+    lbl27: TLabel;
+    editNama: TEdit;
+    lbl28: TLabel;
+    dateTglLahir: TJvDateEdit;
+    panel6: TPanel;
+    grp1: TGroupBox;
+    lbl7: TLabel;
+    lbl8: TLabel;
+    editDari: TJvEdit;
+    editDignosa: TJvEdit;
+    dtPickerJam: TJvDateTimePicker;
+    panel7: TPanel;
+    btn1Simpan: TButton;
+    btn1Batal: TButton;
+    grp2: TGroupBox;
+    lbl3: TLabel;
+    lbl5: TLabel;
+    cbbBiaya: TJvComboBox;
+    cbbCaraDatang: TJvComboBox;
+    actlst1: TActionList;
+    actCariPasien: TAction;
+    images1: TImageList;
+    actNew: TAction;
+    actPrint: TAction;
+    actClose: TAction;
+    btnPrint: TJvTransparentButton;
+    actLab: TAction;
+    btnKunjunganDel: TJvTransparentButton;
+    actDel: TAction;
+    check1: TCheckBox;
+    dbeditMR: TDBEdit;
+    dbeditNama: TDBEdit;
+    btnEditBpjs: TJvTransparentButton;
+    actEditBPJS: TAction;
+    btnRefresh: TJvTransparentButton;
+    actRefresh: TAction;
+    lblBPJS: TLabel;
+    pnl1: TPanel;
+    pageControl1: TJvPageControl;
+    ts1: TTabSheet;
+    ts2: TTabSheet;
+    memoHeader: TMemo;
+    memoData: TMemo;
+    memoResponse: TMemo;
+    btnHeader: TButton;
+    ts3: TTabSheet;
+    memoOlah: TMemo;
+    pb1: TJvProgressDialog;
+    grpRawat: TGroupBox;
+    lbl1: TLabel;
+    cbbKunjungan: TComboBox;
+    lbl29: TLabel;
+    cbbInstalasi: TComboBox;
+    lbl30: TLabel;
+    cbbPoli: TJvComboBox;
+    editNIK: TEdit;
+    chkBaru: TJvCheckBox;
+    btn2: TButton;
+    procedure btn_closeClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure nav1Click(Sender: TObject; Button: TNavigateBtn);
+    procedure cbbCaraDatangChange(Sender: TObject);
+    procedure btn1BatalClick(Sender: TObject);
+    procedure dtPicker1Change(Sender: TObject);
+    procedure btn1SimpanClick(Sender: TObject);
+    procedure PipeClient1PipeMessage(Sender: TObject; Pipe: HPIPE;
+      Stream: TStream);
+    procedure editMRKeyPress(Sender: TObject; var Key: Char);
+    procedure dtPickerJamKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbInstalasiKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbBiayaKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbCaraDatangKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbPoliKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbSebabDatangKeyPress(Sender: TObject; var Key: Char);
+    procedure editNonTraumaKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbTraumaKeyPress(Sender: TObject; var Key: Char);
+    procedure checkPengantarKeyPress(Sender: TObject; var Key: Char);
+    procedure editDariKeyPress(Sender: TObject; var Key: Char);
+    procedure editDignosaKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbDokterKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbPenyakitKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbTindakanGigi0KeyPress(Sender: TObject; var Key: Char);
+    procedure cbbTindakanGigi1KeyPress(Sender: TObject; var Key: Char);
+    procedure dtPickerJamPulangKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbSebabPulangKeyPress(Sender: TObject; var Key: Char);
+    procedure checkHarusKontrolKeyPress(Sender: TObject; var Key: Char);
+    procedure dtPickerKontrolTanggalKeyPress(Sender: TObject; var Key: Char);
+    procedure cbbKontrolPoliKeyPress(Sender: TObject; var Key: Char);
+    procedure dtPickerMeninggalJamKeyPress(Sender: TObject; var Key: Char);
+    procedure editMeninggalSebabKeyPress(Sender: TObject; var Key: Char);
+    procedure editMeninggalOtopsiKeyPress(Sender: TObject; var Key: Char);
+    procedure editDirujukKeKeyPress(Sender: TObject; var Key: Char);
+    procedure dtPickerPulangPaksaKeyPress(Sender: TObject; var Key: Char);
+    procedure editPulangPaksaKeyPress(Sender: TObject; var Key: Char);
+    procedure editRSDitujuKeyPress(Sender: TObject; var Key: Char);
+    procedure btn_pindahRawatInapClick(Sender: TObject);
+    procedure btn7BatalClick(Sender: TObject);
+    procedure dbeditMRChange(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
+    procedure cbbBiayaChange(Sender: TObject);
+    procedure editKeluhanExit(Sender: TObject);
+    procedure cbbKunjunganKeyPress(Sender: TObject; var Key: Char);
+    procedure editNamaKeyPress(Sender: TObject; var Key: Char);
+    procedure dateTglLahirKeyPress(Sender: TObject; var Key: Char);
+    procedure editKeluhanKeyPress(Sender: TObject; var Key: Char);
+    procedure actCariPasienExecute(Sender: TObject);
+    procedure editMRExit(Sender: TObject);
+    procedure actNewExecute(Sender: TObject);
+    procedure actPrintExecute(Sender: TObject);
+    procedure actCloseExecute(Sender: TObject);
+    procedure actLabExecute(Sender: TObject);
+    procedure actDelExecute(Sender: TObject);
+    procedure actEditBPJSExecute(Sender: TObject);
+    procedure actRefreshExecute(Sender: TObject);
+    procedure cbbKunjunganChange(Sender: TObject);
+    procedure pb1Progress(Sender: TObject; var AContinue: Boolean);
+    procedure cbbPoliChange(Sender: TObject);
+    procedure chkBaruKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+
+    iDummi, idxPoli : Integer;
+    vidxstr, strTgl, strJam : string;
+    jsParam : string;
+    ABridge : TBridge;
+    boleh_buka : Boolean;
+
+    procedure awal;
+    procedure buka_data;
+    procedure ambil_konfig;
+    procedure cetak_kunjungan (vtgl1 , vtgl2 : TDate);
+
+    procedure kosongkan_baru;
+    procedure kosongkan_diagnosa;
+    procedure kosongkan_tindakanGigi;
+    procedure kosongkan_poned;
+    procedure kosongkan_pulang;
+
+
+    procedure isi_combo(aCombo : TComboBox; aQuery, aField : string);
+    procedure update_combo_poli( isJKN : Boolean; isSakit : Boolean);
+    function ambil_idxstr : string;
+
+    procedure simpan_masuk;
+    procedure simpan_datang_rujukan(strTgl, strNomor, strMR, strDari, strDiagnosa : string);
+    procedure simpan_rawat_inap(strTgl, strNomor, strMr : string);
+    procedure simpan_diagnosa;
+    procedure simpan_tindakanGigi;
+    procedure simpan_poned;
+    procedure simpan_pulang;
+    procedure update_dipulangkan(aStr : string);
+    procedure update_dirujuk(aStr : string);
+    procedure update_paksa(aStr : string);
+    procedure update_pindahRS(aStr : string);
+    procedure update_meninggal(aStr : string);
+    procedure bersihkan_form;
+
+
+    function check_jkn : Boolean;
+    procedure update_provider_peserta(mr , provider_pst : string);
+
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_pasienKunjungan: TForm1_pasienKunjungan;
+const
+  vTopKeluar = 141;
+  vLeftKeluar = 41;
+
+implementation
+
+uses aau, aau111, dmKunjungan, pasienCariu, ICDXCariu, kunjunganCetakDlgU, uLkJSON,
+  pasienBaruU, amyhttp, mybridge, SynCommons;
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+procedure Sleep(MilliSecondsToWait: LongInt);
+var StartTime: LongInt;
+begin
+      StartTime := GetTickCount;
+      while (GetTickCount >= StartTime) and
+            (GetTickCount < (StartTime + MilliSecondsToWait)) do
+        Application.ProcessMessages
+end {Sleep};
+
+procedure TForm1_pasienKunjungan.actLabExecute(Sender: TObject);
+begin
+  ShowMessage('tes');
+end;
+
+procedure TForm1_pasienKunjungan.actCariPasienExecute(Sender: TObject);
+begin
+Form1_pasienCari.ShowModal;
+if Form1_pasienCari.ModalResult = mrOk then
+begin
+  editMR.Text := Form1_pasienCari.lblMR.Caption;
+  editNama.Text := Form1_pasienCari.lblNama.Caption;
+  editNIK.Text := Form1_pasienCari.labelNIK.Caption;
+  lblBPJS.Caption := Form1_pasienCari.lblBPJS.Caption;
+  dateTglLahir.Date := Form1_pasienCari.dtp1.DateTime;
+  check1.Checked := Form1_pasienCari.check1.Checked;
+  editMR.SetFocus;
+end;
+
+end;
+
+procedure TForm1_pasienKunjungan.actCloseExecute(Sender: TObject);
+begin
+PipeClient1.Disconnect;
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+//grideh1.SaveColumnsLayoutIni(form111.MyIni, name, false);
+
+dataKunjungan.conn1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMesssage('0');
+
+end;
+
+procedure TForm1_pasienKunjungan.actDelExecute(Sender: TObject);
+var sql0, sql1, vpertanyaan : string;
+begin
+vpertanyaan := 'Hapus Batal Berobat --> MR : ' + dbeditMR.Text + '  Nama : ' + dbeditNama.Text + '  ?';
+if Application.MessageBox( PWideChar(vpertanyaan), 'Konfirmasi', MB_YESNO) = mrYes then
+
+try
+sql0 := 'delete from simpus2.pasien_kunjungan where tanggal = %s and nomor = %s;';
+with dataKunjungan do
+begin
+   sql1 := Format(sql0, [
+                        QuotedStr(FormatDateTime('YYYY-MM-DD', qPasienKunjungan.FieldByName('tanggal').AsDateTime)),
+                        qPasienKunjungan.FieldByName('nomor').AsString
+                        ]);
+   qproses.SQL.Clear;
+   qproses.SQL.Add(sql1);
+   qproses.Execute;
+end;
+finally
+  buka_data;
+  ShowMessage('Data telah dihapus');
+end;
+end;
+
+procedure TForm1_pasienKunjungan.actEditBPJSExecute(Sender: TObject);
+begin
+ShowMessage('tes');
+end;
+
+procedure TForm1_pasienKunjungan.actNewExecute(Sender: TObject);
+var strMR : string;
+begin
+  form1_pasienBaru.ShowModal;
+  if Form1_pasienBaru.ModalResult = mrOk then
+  begin
+    try
+    strMR := Form1_pasienBaru.editMR.Text;
+    if Length(Form1_pasienBaru.editMR.Text) > 0 then strMR := Form1_pasienBaru.editMR.Text;
+    editMR.Text := strMR;
+    finally
+    btn1.Click;
+    end;
+  end;
+end;
+
+procedure TForm1_pasienKunjungan.actPrintExecute(Sender: TObject);
+begin
+with dataKunjungan do
+begin
+   unsql1.CreateProcCall('simpus2.rpt_dummi_thbl_buat');
+   unsql1.Prepare;
+   unsql1.ParamByName('ip_tahun').AsInteger := CurrentYear;
+   unsql1.ParamByName('ip_bulan').AsInteger := 1;
+   unsql1.Execute;
+
+end;
+frxReport1.ShowReport();
+end;
+
+
+procedure TForm1_pasienKunjungan.actRefreshExecute(Sender: TObject);
+begin
+//ShowMessage('ok');
+buka_data;
+end;
+
+function TForm1_pasienKunjungan.ambil_idxstr: string;
+var sql0, sql1 : string;
+begin
+with dataKunjungan do
+begin
+   sql0 := 'select idxstr from simpus2.pasien_kunjungan where tanggal = %s and jam = %s and mr = %s';
+   sql1 := Format(sql0, [QuotedStr(strTgl), QuotedStr(strJam), QuotedStr(editMR.Text)]);
+   qbuka.Close;
+   qbuka.SQL.Clear;
+   qbuka.SQL.Add(sql1);
+   qbuka.Open;
+
+   Result := qbuka.FieldByName('idxstr').AsString;
+   qbuka.Close;
+end;
+end;
+
+procedure TForm1_pasienKunjungan.ambil_konfig;
+var i : Integer;
+    myJson : Variant;
+begin
+jsParam := ExtractFilePath(Application.ExeName) + 'param.json';
+
+myJson := _JsonFast(StringFromFile(jsParam));
+// pulang
+
+ cbbCaraDatang.Clear;
+ for i := 0 to myJson.datang._Count - 1 do
+      cbbCaraDatang.Items.Add(myJson.datang.Value(i));
+
+ cbbInstalasi.Clear;
+ for i := 0 to myJson.instalasi._Count - 1 do
+      cbbInstalasi.Items.Add(myJson.instalasi.Value(i));
+
+
+
+ cbbInstalasi.ItemIndex := 0;
+end;
+
+
+
+
+procedure TForm1_pasienKunjungan.awal;
+begin
+PipeClient1.Connect(2000);
+boleh_buka := False;
+ambil_konfig;
+
+grid1.RestoreColumnsLayoutIni(form111.MyIni, name, [crpColWidthsEh]);
+//grideh1.RestoreColumnsLayoutIni(form111.MyIni, name, [crpColWidthsEh]);
+
+dtPicker1.DateTime := Now;
+
+kosongkan_baru;
+kosongkan_diagnosa;
+kosongkan_tindakanGigi;
+kosongkan_poned;
+kosongkan_pulang;
+cbbKunjungan.ItemIndex := 1;
+cbbKunjunganChange(cbbKunjungan);
+buka_data;
+end;
+
+procedure TForm1_pasienKunjungan.bersihkan_form;
+begin
+editMR.Clear;
+dtPicker1.DateTime := Now;
+dtPickerJam.DateTime := Now;
+editNama.Clear;
+dateTglLahir.Clear;
+//cbbInstalasi.ItemIndex := 0;
+//isi_combo(TComboBox(cbbBiaya), 'select biaya from simpus2.m_pasien_biaya where adl_aktif = 1 order by upper(biaya)', 'biaya');
+//isi_combo(TComboBox(cbbPoli), 'select poli from simpus2.m_poli order by id_poli', 'poli' );
+{
+cbbPoli.ItemIndex := idxPoli;
+cbbCaraDatang.ItemIndex := 0;
+cbbSebabDatang.ItemIndex := 1;
+editNonTrauma.Clear;
+editNonTrauma.Visible := True;
+cbbTrauma.Visible := False;
+}
+editDari.Clear;
+editDignosa.Clear;
+btn1Simpan.Enabled := False;
+//grp1.Visible := False;
+cbbKunjungan.SelStart := 0;
+cbbInstalasi.SelStart := 0;
+cbbPoli.SelStart := 0;
+cbbBiaya.SelStart := 0;
+cbbCaraDatang.SelStart := 0;
+
+end;
+
+procedure TForm1_pasienKunjungan.btn1BatalClick(Sender: TObject);
+begin
+try
+  kosongkan_baru;
+finally
+  editMR.SetFocus;
+end;
+end;
+
+procedure TForm1_pasienKunjungan.btn1Click(Sender: TObject);
+begin
+with dataKunjungan do
+begin
+   uqCariMr.Close;
+   uqCariMr.ParamByName('mr').AsString := editMR.Text;
+   uqCariMr.Open;
+
+   if not uqCariMr.IsEmpty then
+   begin
+     editNama.Text := uqCariMr.FieldByName('nama_lengkap').AsString;
+     editNIK.Text := uqCariMr.FieldByName('nik').AsString;
+     dateTglLahir.Date := uqCariMr.FieldByName('tgl_lahir').AsDateTime;
+     lblBPJS.Caption := uqCariMr.FieldByName('kartu_bpjs').AsString;
+     check1.Checked := not uqCariMr.FieldByName('kartu_bpjs').IsNull;
+     editNama.SetFocus;
+   end else
+   begin
+   ShowMessage('Data Tidak Ditemukan');
+   editMR.SetFocus;
+   end;
+
+   uqCariMr.Close;
+
+end;
+end;
+
+procedure TForm1_pasienKunjungan.btn1SimpanClick(Sender: TObject);
+var boolTes : Boolean;
+begin
+{
+    try
+      simpan_masuk;
+      ShowMessage('ok');
+      bersihkan_form;
+      //kosongkan_baru;
+    finally
+      buka_data;
+      editMR.SetFocus;
+    end;
+}
+    // HAPUS DIATAS DAN BUKA KURUNG KURAWAL
+
+pb1.Interval := 10;
+pb1.Show;
+if cbbBiaya.Items[cbbBiaya.ItemIndex] = 'JKN' then
+begin
+pb1.Position := 10;
+Application.ProcessMessages;
+if check_jkn then
+    begin
+//    ShowMessage('check_jkn lolos');
+
+ //   ShowMessage('memoOlah.Lines.Values[adl_aktif] : ' + memoOlah.Lines.Values['adl_aktif']);
+    pb1.Position := 60;
+    if not StrToBool(memoOlah.Lines.Values['adl_aktif'])  then
+    begin
+      ShowMessage('Kartu BPJS tidak aktif. Layanan tidak bisa diberikan');
+      pb1.Hide;
+      Exit;
+    end;
+    pb1.Position := 70;
+//    ShowMessage('memoOlah.Lines.Values[adl_pstPelayanan] : ' + memoOlah.Lines.Values['adl_pstPelayanan']);
+    if not StrToBool(memoOlah.Lines.Values['adl_pstPelayanan']) then
+    begin
+      if MessageBox(0, 'Peserta BPJS di luar area layanan, Apakah tetap dilayani?','Konfirmasi', MB_YESNO) = mrNo then
+      begin
+        pb1.Hide;
+        Exit;
+      end;
+
+    end;
+    pb1.Position := 90;
+    try
+      simpan_masuk;
+      ShowMessage('ok');
+      bersihkan_form;
+      //kosongkan_baru;
+    finally
+      buka_data;
+      editMR.SetFocus;
+    end;
+    end else
+    begin
+      ShowMessage('data kartu bpjs tidak ditemukan !');
+    end;
+end else
+begin
+     try
+      simpan_masuk;
+      ShowMessage('ok');
+      bersihkan_form;
+      //kosongkan_baru;
+    finally
+      buka_data;
+      editMR.SetFocus;
+    end;
+end;
+pb1.Hide;
+
+end;
+
+procedure TForm1_pasienKunjungan.btn7BatalClick(Sender: TObject);
+begin
+kosongkan_poned;
+end;
+
+procedure TForm1_pasienKunjungan.btn_closeClick(Sender: TObject);
+begin
+PipeClient1.Disconnect;
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+//grideh1.SaveColumnsLayoutIni(form111.MyIni, name, false);
+
+dataKunjungan.conn1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMesssage('0');
+end;
+
+procedure TForm1_pasienKunjungan.btn_pindahRawatInapClick(Sender: TObject);
+var str0, str1, vidxstr : string;
+begin
+if (MessageBox(0, 'Pindahkan ke Rawat Inap ?', 'Konfirmasi', MB_YESNO or MB_ICONQUESTION) = mrYes) then
+begin
+with dataKunjungan do
+begin
+vidxstr := qPasienKunjungan.FieldByName('idxstr').AsString;
+str0 := 'update simpus2.pasien_kunjungan set instalasi = %s where idxstr = %s';
+str1 := Format(str0, [QuotedStr('RAWAT INAP'), QuotedStr(vidxstr)]);
+
+   qproses.SQL.Clear;
+   qproses.SQL.Add(str1);
+   qproses.Execute;
+
+end;
+ShowMessage('ok');
+buka_data;
+dataKunjungan.qPasienKunjungan.Locate('idxstr', vidxstr, []);
+end;
+end;
+
+procedure TForm1_pasienKunjungan.buka_data;
+begin
+with dataKunjungan do
+begin
+  conn1.Connected := false;
+  qPasienKunjungan.close;
+  qPasienKunjungan.ParamByName('tanggal').AsDate := dtPicker1.Date;
+//  qPasienKunjungan.ParamByName('puskesmas').AsString := Form111.storageUmum.StoredValue['puskesmas'];
+  qPasienKunjungan.Open;
+{
+  uqKendali.Close;
+  uqKendali.Open;
+
+  qPasienPulang.close;
+  qPasienPulang.ParamByName('tanggal').AsDate := dtPicker1.Date;
+//  qPasienPulang.ParamByName('puskesmas').AsString := Form111.storageUmum.StoredValue['puskesmas'];
+  qPasienPulang.Open;
+}
+end;
+  boleh_buka := True;
+end;
+
+procedure TForm1_pasienKunjungan.cbbBiayaChange(Sender: TObject);
+var isJKN, isSakit : Boolean;
+begin
+isJKN := UpperCase(cbbBiaya.Items[cbbBiaya.ItemIndex]) = 'JKN';
+isSakit := cbbKunjungan.ItemIndex = 1;
+
+update_combo_poli(isJKN, isSakit);
+{
+ if cbbBiaya.Items[cbbBiaya.ItemIndex] = 'JKN' then
+    begin
+      { TODO : Cek apakah kartu diblokir atau tidak }
+  {
+      ShowMessage('sistem harus melihat pada sistem p-care : apakah nomor kartu di blok ?');
+    end;
+ }
+ end;
+
+procedure TForm1_pasienKunjungan.cbbBiayaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbCaraDatangChange(Sender: TObject);
+begin
+grp1.Visible := cbbCaraDatang.ItemIndex  = 1;
+end;
+
+procedure TForm1_pasienKunjungan.cbbCaraDatangKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbDokterKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbInstalasiKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbKontrolPoliKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbKunjunganChange(Sender: TObject);
+var isJKN, isSakit : Boolean;
+begin
+isJKN := UpperCase(cbbBiaya.Items[cbbBiaya.ItemIndex]) = 'JKN';
+isSakit := cbbKunjungan.ItemIndex = 1;
+
+update_combo_poli(isJKN, isSakit);
+end;
+
+procedure TForm1_pasienKunjungan.cbbKunjunganKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if key = Chr(13) then SelectNext(TWinControl(Sender), True, true);
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbPenyakitKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbPoliChange(Sender: TObject);
+begin
+btn1Simpan.Enabled := True;
+end;
+
+procedure TForm1_pasienKunjungan.cbbPoliKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbSebabDatangKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbSebabPulangKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbTindakanGigi0KeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbTindakanGigi1KeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cbbTraumaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.cetak_kunjungan(vtgl1, vtgl2: TDate);
+begin
+with dataKunjungan do
+begin
+  conn1.Connected := false;
+
+  uspTglRentang.ParamByName('ip_tanggal1').AsDate := vtgl1;
+  uspTglRentang.ParamByName('ip_tanggal2').AsDate := vtgl2;
+  uspTglRentang.ParamByName('ip_institusi').AsString := Form111.institusiR;
+  uspTglRentang.ParamByName('ip_alamat').AsString := Form111.alamatR;
+  uspTglRentang.ExecProc;
+  uspTglRentang.Close;
+
+  uqPuskesmas_pv.Close;
+  uqPuskesmas_pv.Open;
+
+  qTglRentang.Close;
+  qTglRentang.Open;
+
+  qPasienKunjunganCetak.Close;
+  qPasienKunjunganCetak.Open;
+
+end;
+
+frxReport1.ShowReport();
+end;
+
+procedure TForm1_pasienKunjungan.checkHarusKontrolKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.checkPengantarKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+function TForm1_pasienKunjungan.check_jkn: Boolean;
+var adl_berhasil : Boolean;
+begin
+ABridge := TBridge.create;
+// cek apakah data kartu bpjs tersedia
+Result := False;
+adl_berhasil := False;
+
+  if Length(lblBPJS.Caption) <= 0 then
+  begin
+     ShowMessage('kartu bpjs masih kosong... Cari Data Pasien, edit kartu BPJS');
+     Result := False;
+  end else
+  begin
+  pb1.Position := 10;
+  //ambil_header(jsConsID, jsKey, jsUserID, jsPasswd, memoHeader.Lines);
+  if ABridge.get_peserta(lblBPJS.Caption, memoResponse.Lines) then
+    // berhasil get
+    begin
+      adl_berhasil := True;
+    end else
+    begin
+      //get peserta gagal
+      ShowMessage('koneksi ke server PCARE BPJS gagal');
+      Result := False;
+    end;
+
+  end;
+  if adl_berhasil then
+  begin
+  pb1.Position := 30;
+  if ABridge.ambil_list_peserta(memoResponse.Lines, memoOlah.Lines ) then
+  begin
+  Result := True;
+  // update provider peserta
+  update_provider_peserta(editMR.Text, memoOlah.Lines.Values['kdProviderPst']);
+  end
+   else Result := False;
+  end;
+  pb1.Position := 50;
+  if not Result then pb1.Hide;
+
+  ABridge.Free;
+end;
+
+procedure TForm1_pasienKunjungan.chkBaruKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.dateTglLahirKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.dbeditMRChange(Sender: TObject);
+begin
+      if dataKunjungan.qPasienKunjungan.Active then
+      begin
+      btnKunjunganDel.Visible := dataKunjungan.qPasienKunjungan.FieldByName('sdh_dilayani').AsInteger = 0;
+//      btnEditBpjs.Visible := Length(dbeditMR.Text) > 0;
+      //      btn_pindahRawatInap.Visible := dbedit2.Field.Value <> 'RAWAT INAP';
+//      dataKunjungan.qPasienKunjungan.FieldByName('instalasi').AsString <> 'RAWAT INAP';
+      end;
+
+end;
+
+procedure TForm1_pasienKunjungan.dtPicker1Change(Sender: TObject);
+begin
+if boleh_buka then buka_data;
+
+end;
+
+procedure TForm1_pasienKunjungan.dtPickerJamKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.dtPickerJamPulangKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.dtPickerKontrolTanggalKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.dtPickerMeninggalJamKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.dtPickerPulangPaksaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editDariKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editDignosaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editDirujukKeKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editKeluhanExit(Sender: TObject);
+begin
+btn1Simpan.Enabled := (Length(editMR.Text) > 0);
+end;
+
+procedure TForm1_pasienKunjungan.editKeluhanKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+end;
+
+procedure TForm1_pasienKunjungan.editMeninggalOtopsiKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editMeninggalSebabKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editMRExit(Sender: TObject);
+begin
+btn1Simpan.Enabled := Length(editMR.Text) > 0;
+end;
+
+procedure TForm1_pasienKunjungan.editMRKeyPress(Sender: TObject; var Key: Char);
+begin
+if Key = #13 then
+begin
+btn1.Click;
+SelectNext(TWinControl(Sender), True, True );
+end;
+
+end;
+
+procedure TForm1_pasienKunjungan.editNamaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editNonTraumaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editPulangPaksaKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.editRSDitujuKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True );
+
+end;
+
+procedure TForm1_pasienKunjungan.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_pasienKunjungan.isi_combo(aCombo: TComboBox; aQuery, aField: string);
+begin
+aCombo.Clear;
+with dataKunjungan do
+begin
+  qbuka.Close;
+  qbuka.SQL.Clear;
+  qbuka.SQL.Add(aQuery);
+  qbuka.Open;
+
+  while not qbuka.Eof do
+  begin
+    aCombo.Items.Add(qbuka.FieldByName(aField).AsString);
+    qbuka.Next;
+  end;
+  qbuka.Close;
+  aCombo.ItemIndex := 0;
+end;
+end;
+
+procedure TForm1_pasienKunjungan.kosongkan_baru;
+begin
+editMR.Clear;
+dtPicker1.DateTime := Now;
+dtPickerJam.DateTime := Now;
+editNama.Clear;
+dateTglLahir.Clear;
+//cbbInstalasi.ItemIndex := 0;
+isi_combo(TComboBox(cbbBiaya), 'select biaya from simpus2.m_pasien_biaya where adl_aktif = 1 order by upper(biaya)', 'biaya');
+//isi_combo(TComboBox(cbbPoli), 'select poli from simpus2.m_poli where adl_bpjs = 1 order by id_poli', 'poli' );
+cbbPoli.ItemIndex := idxPoli;
+cbbCaraDatang.ItemIndex := 0;
+editDari.Clear;
+editDignosa.Clear;
+grp1.Visible := False;
+end;
+
+procedure TForm1_pasienKunjungan.kosongkan_diagnosa;
+begin
+
+end;
+
+procedure TForm1_pasienKunjungan.kosongkan_poned;
+var str0, str1 : string;
+begin
+end;
+
+procedure TForm1_pasienKunjungan.kosongkan_pulang;
+begin
+
+end;
+
+procedure TForm1_pasienKunjungan.kosongkan_tindakanGigi;
+var str0 : string;
+begin
+end;
+
+procedure TForm1_pasienKunjungan.nav1Click(Sender: TObject; Button: TNavigateBtn);
+  var apv : string;
+begin
+
+if Button in [ nbInsert, nbEdit] then
+begin
+  grid1.Options := grid1.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+//  apv := dataKunjungan.qMasterPoli.FieldByName('id_poli').AsString;
+  grid1.Options := grid1.Options - [dgEditing] + [dgRowSelect];
+  buka_data;
+ // dataKunjungan.qMasterPoli.Locate('id_poli', apv, []);
+end;
+
+
+end;
+
+procedure TForm1_pasienKunjungan.pb1Progress(Sender: TObject;
+  var AContinue: Boolean);
+begin
+Application.ProcessMessages;
+end;
+
+procedure TForm1_pasienKunjungan.PipeClient1PipeMessage(Sender: TObject;
+  Pipe: HPIPE; Stream: TStream);
+var
+    i : Integer;
+    Msg : String;
+begin
+    SetLength(Msg, Stream.Size div SizeOf(Char));
+    Stream.Position := 0;
+    Stream.Read(Msg[1], Stream.Size);
+    if (Msg = '1001') then
+    begin
+
+//      lblDiagnosa.Caption := 'Diagnosa Terakhir : ' + ambil_diagnosaTerakhir;
+//      lbldbtxt2.Caption := dataKunjungan.qPasienKunjungan.FieldByName('mr').AsString + ' - ' + dataKunjungan.qPasienKunjungan.FieldByName('nama').AsString;
+
+    end;
+end;
+
+procedure TForm1_pasienKunjungan.simpan_datang_rujukan(strTgl, strNomor, strMR, strDari, strDiagnosa : string);
+var str0, str1 : string;
+begin
+   str0 := 'INSERT INTO simpus2.datang_dirujuk(tanggal, nomor, mr, dari, diagnosa ) ' +
+            'values(%s, %s, %s, %s, %s);';
+   str1 := Format(str0, [
+                         QuotedStr(strTgl),
+                         strNomor,
+                         QuotedStr(strMR),
+                         QuotedStr(strDari),
+                         QuotedStr(strDiagnosa)
+                  ]);
+    with dataKunjungan do
+    begin
+      qproses.SQL.Clear;
+      qproses.SQL.Add(str1);
+      qproses.Execute;
+    end;
+end;
+
+procedure TForm1_pasienKunjungan.simpan_diagnosa;
+begin
+end;
+
+procedure TForm1_pasienKunjungan.simpan_masuk;
+var str0, str1 : string;
+    strDatangSebab, strPoli, strNomor : string;
+    strLama : string;
+begin
+//ShowMessage('awal simpan masuk');
+DateTimeToString(strTgl, 'YYYY-MM-DD', dtPicker1.Date);
+DateTimeToString(strJam, 'HH:NN:SS', dtPickerJam.Time);
+strLama := '1';
+
+if chkBaru.Checked then strLama := '0';
+
+
+
+str0 := 'INSERT INTO simpus2.pasien_kunjungan(tanggal, mr, jenis_kunjungan, biaya, lama, datang_rujukan, datang_sebab, poli_tujuan, jam, instalasi) ' +
+        'VALUES( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)';
+
+str1 := Format(str0, [
+                      QuotedStr(strTgl),
+                      QuotedStr(editMR.Text),
+                      QuotedStr(cbbKunjungan.Items[cbbKunjungan.ItemIndex]),
+                      QuotedStr(cbbBiaya.Items[cbbBiaya.ItemIndex]),
+                      strLama,
+                      QuotedStr(cbbCaraDatang.Items[cbbCaraDatang.ItemIndex]),
+                      QuotedStr('tes'),
+                      QuotedStr(cbbPoli.Items[cbbPoli.ItemIndex]),
+                      QuotedStr(strJam),
+                      QuotedStr(cbbInstalasi.Items[cbbInstalasi.ItemIndex])
+]);
+
+with dataKunjungan do
+begin
+ // ShowMessage(str1);
+
+  qproses.SQL.Clear;
+  qproses.SQL.Add(str1);
+  qproses.Execute;
+  //ShowMessage('habis insert kunjungan');
+end;
+
+try
+  buka_data;
+finally
+  dataKunjungan.qPasienKunjungan.Locate('idxstr', ambil_idxstr, []);
+  strNomor := dataKunjungan.qPasienKunjungan.FieldByName('nomor').AsString;
+  if cbbCaraDatang.ItemIndex = 1 then
+    simpan_datang_rujukan(strTgl, strNomor, editMR.Text, editDari.Text, editDignosa.Text);
+
+  if cbbInstalasi.Items[cbbInstalasi.ItemIndex] = 'RAWAT INAP' then
+    simpan_rawat_inap(strTgl, strNomor, editMR.Text);
+
+end;
+idxPoli := cbbPoli.ItemIndex;
+end;
+
+procedure TForm1_pasienKunjungan.simpan_poned;
+begin
+end;
+
+procedure TForm1_pasienKunjungan.simpan_pulang;
+var strPulang, strPulang0, strPulang1 : string;
+   intKontrol : Integer;
+begin
+end;
+
+procedure TForm1_pasienKunjungan.simpan_rawat_inap(strTgl, strNomor,
+  strMr: string);
+var str0, str1 : string;
+begin
+   str0 := 'INSERT INTO simpus2.rawat_inap(tanggal, nomor) ' +
+            'values(%s, %s);';
+   str1 := Format(str0, [
+                         QuotedStr(strTgl),
+                         strNomor
+                  ]);
+    with dataKunjungan do
+    begin
+      qproses.SQL.Clear;
+      qproses.SQL.Add(str1);
+      qproses.Execute;
+    end;
+end;
+
+procedure TForm1_pasienKunjungan.simpan_tindakanGigi;
+begin
+end;
+
+procedure TForm1_pasienKunjungan.update_combo_poli(isJKN, isSakit: Boolean);
+begin
+if isJKN then
+begin
+ if isSakit then isi_combo(TComboBox(cbbPoli), 'select poli from simpus2.m_poli where adl_bpjs = true and poli_sakit = true order by id_poli', 'poli' ) else
+                 isi_combo(TComboBox(cbbPoli), 'select poli from simpus2.m_poli where adl_bpjs = true and poli_sakit = false order by id_poli', 'poli' );
+end else
+begin
+ if isSakit then isi_combo(TComboBox(cbbPoli), 'select poli from simpus2.m_poli where poli_sakit = true order by id_poli', 'poli' ) else
+                 isi_combo(TComboBox(cbbPoli), 'select poli from simpus2.m_poli where poli_sakit = false order by id_poli', 'poli' );
+end;
+cbbPoli.ItemIndex := 0;
+end;
+
+procedure TForm1_pasienKunjungan.update_dipulangkan(aStr : string);
+begin
+
+end;
+
+procedure TForm1_pasienKunjungan.update_dirujuk(aStr : string);
+begin
+end;
+
+procedure TForm1_pasienKunjungan.update_meninggal(aStr : string);
+begin
+end;
+
+procedure TForm1_pasienKunjungan.update_paksa(aStr : string);
+begin
+end;
+
+procedure TForm1_pasienKunjungan.update_pindahRS(aStr : string);
+begin
+end;
+
+procedure TForm1_pasienKunjungan.update_provider_peserta(mr,
+  provider_pst: string);
+var sql0, sql1 : string;
+begin
+with dataKunjungan do
+begin
+  sql0 := 'update simpus2.capil_nik set kd_provider = %s where mr = %s;';
+  sql1 := Format(sql0, [QuotedStr(provider_pst), QuotedStr(mr)]);
+  qproses.SQL.Clear;
+  qproses.SQL.Add(sql1);
+  qproses.Execute;
+end;
+end;
+
+end.

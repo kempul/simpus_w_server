@@ -1,0 +1,117 @@
+unit frxu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxExportPDF,
+  frxDBSet, JvDataSource, frxPreview, frxExportXLS, frxCross,
+  frxChBox, Data.DB, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.PG, FireDAC.Phys.PGDef,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.Comp.Client,
+  FireDAC.DApt, FireDAC.Comp.DataSet;
+
+type
+  TForm1_frx = class(TForm)
+    frxDB_feeRawat: TfrxDBDataset;
+    frxReport1_feeRawat: TfrxReport;
+    frxprvw1: TfrxPreview;
+    frxdbDataset1_kunjungan: TfrxDBDataset;
+    frxReport1_kunjungan: TfrxReport;
+    frxDBrptthbl: TfrxDBDataset;
+    frxDBDataset1_10Besar: TfrxDBDataset;
+    frxReport1_10Besar: TfrxReport;
+    frxDBDataset2_kesakitan: TfrxDBDataset;
+    frxReport1_kesakitan: TfrxReport;
+    frxDBDataset1_kunjunganHarian: TfrxDBDataset;
+    frxReport1_kunjunganHarian: TfrxReport;
+    frxDBDataset2_kunjunganLuar: TfrxDBDataset;
+    frxReport1_kunjunganLuar: TfrxReport;
+    frxReport1_rawatInap: TfrxReport;
+    frxDBDataset1_gigi: TfrxDBDataset;
+    frxReport1_gigi: TfrxReport;
+    frxdb_poned: TfrxDBDataset;
+    frxReport_poned: TfrxReport;
+    frxlsxprt1: TfrxXLSExport;
+    frxchckbxbjct1: TfrxCheckBoxObject;
+    frxcrsbjct1: TfrxCrossObject;
+    frxpdfxprt1: TfrxPDFExport;
+    frxdb_rujukan1: TfrxDBDataset;
+    frxReport_rujukan: TfrxReport;
+    dsthblDummi: TJvDataSource;
+    frxdb_rujukan0: TfrxDBDataset;
+    frxDBRujukanDrKader: TfrxDBDataset;
+    frxdbRawatInap: TfrxDBDataset;
+    frxdb1Imunisasi: TfrxDBDataset;
+    frxdb1Tgl: TfrxDBDataset;
+    frxdb1KesakitanTgl: TfrxDBDataset;
+    frxReport1KesakitanTgl: TfrxReport;
+    frxdb1KesakitanDesa: TfrxDBDataset;
+    dsBpjsEksport: TDataSource;
+    FDConnection1: TFDConnection;
+    fdTransaction1: TFDTransaction;
+    fdpgdriver1: TFDPhysPgDriverLink;
+    fdCmd1: TFDCommand;
+    fdQKunjungan: TFDQuery;
+    fdQPuskesmasThbl: TFDQuery;
+    frxdbThbl: TfrxDBDataset;
+    fdQKesakitan: TFDQuery;
+    fdQKunjunganHarian: TFDQuery;
+    fdQBesar10: TFDQuery;
+    fdQTindakanGigi: TFDQuery;
+    fdQPoned: TFDQuery;
+    fdQImunisasi: TFDQuery;
+    fdQKunjunganLuar: TFDQuery;
+    fdSpRI: TFDStoredProc;
+    fdQRI: TFDQuery;
+    fdQRujuk: TFDQuery;
+    fdQRujukKePkm: TFDQuery;
+    fdQRujukLengkap: TFDQuery;
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getDB;
+
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_frx: TForm1_frx;
+
+implementation
+
+uses kunciu;
+
+{$R *.dfm}
+
+procedure TForm1_frx.FormCreate(Sender: TObject);
+begin
+getDB;
+end;
+
+procedure TForm1_frx.getDB;
+begin
+if FDConnection1.Connected then FDConnection1.Connected := false;
+
+//FDConnection1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+FDConnection1.Params.Clear;
+FDConnection1.Params.Add('DriverID=PG');
+FDConnection1.Params.Add('Server=' + pghost);
+FDConnection1.Params.Add('Port=' +  pgport);
+FDConnection1.Params.Add('Database= ' + pgdb);
+FDConnection1.Params.Add('User_name=' + pguser);
+FDConnection1.Params.Add('Password=' + pgpasswd);
+
+end;
+
+end.

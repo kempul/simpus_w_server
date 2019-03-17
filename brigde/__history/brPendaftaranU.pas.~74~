@@ -1,0 +1,263 @@
+unit brPendaftaranU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils;
+
+type
+
+  brPendaftaran = class(bridgeCommon)
+    private
+    procedure masukkanGetPendaftaranUrut;
+    procedure masukkanPostPendaftaran(idxstr : string);
+    procedure masukkanDelPendaftaran(idxstr : string);
+    public
+    bpjs_urut : string;
+    aScript : TStringList;
+    function ambilJsonPostPendaftaran(idxstr : string) : string;
+    function getPendaftaranUrut(noUrut : string; tanggalDaftar : TDate) : Boolean;
+    function postPendaftaran(idxstr : string) : Boolean;
+    function delPendaftaran(no_kunjungan, no_kartu, tanggal, no_urut, kd_poli  : string) : Boolean;
+    constructor Create;
+    destructor destroy;
+//    property Uri : string;
+  end;
+
+implementation
+     uses SynCommons, synautil;
+
+{ brPendaftaran }
+
+function brPendaftaran.ambilJsonPostPendaftaran(idxstr : string) : string;
+var sql0, sql1 : string;
+    tglStr : string;
+    i : Integer;
+    V1 : Variant;
+begin
+  Result := '';
+  parameter_bridging('PENDAFTARAN', 'POST');
+//  DateTimeToString(tglSqlStr, 'YYYY-MM-DD', tgl);
+  sql0 := 'select * from jkn.pendaftaran_view where idxstr = %s and bpjs_urut is null;';
+  sql1 := Format(sql0,[QuotedStr(idxstr)]);
+
+ // ShowMessage(idxstr);
+  fdQuery.Close;
+  fdQuery.SQL.Clear;
+  fdQuery.SQL.Add(sql1);
+  fdQuery.Open();
+
+  V1 := _Json(FormatJson);
+  //ShowMessage(FormatJson);
+  if not fdQuery.IsEmpty then
+  begin
+    // ShowMessage('not empty');
+     DateTimeToString(tglStr, 'DD-MM-YYYY', fdQuery.FieldByName('tanggal').AsDateTime);
+     bpjs_urut := fdQuery.FieldByName('bpjs_urut').AsString;
+     V1.kdProviderPeserta := fdQuery.FieldByName('kd_provider').AsString;
+     V1.tglDaftar := tglStr;
+     V1.noKartu := fdQuery.FieldByName('no_kartu').AsString;
+     V1.kdPoli := fdQuery.FieldByName('poli').AsString;
+     V1.keluhan := fdQuery.FieldByName('keluhan').AsString;
+     V1.kunjSakit := fdQuery.FieldByName('kunj_sakit').AsBoolean;
+     V1.sistole := fdQuery.FieldByName('sistole').AsInteger;
+     V1.diastole := fdQuery.FieldByName('diastole').AsInteger;
+     V1.beratBadan := fdQuery.FieldByName('berat_badan').AsInteger;
+     V1.tinggiBadan := fdQuery.FieldByName('tinggi_badan').AsInteger;
+     V1.respRate := fdQuery.FieldByName('respiratory').AsInteger;
+     V1.heartRate := fdQuery.FieldByName('heart').AsInteger;
+     V1.kdTkp := fdQuery.FieldByName('kd_tkp').AsString;
+
+     fdQuery.Close;
+
+     Result := VariantSaveJSON(V1);
+    // FileFromString(Result, 'pendaftaran.json');
+
+  end else ShowMessage('data kosong');
+  //ShowMessage(Result);
+end;
+
+constructor brPendaftaran.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+function brPendaftaran.delPendaftaran(no_kunjungan, no_kartu, tanggal, no_urut, kd_poli  : string): Boolean;
+var sql0, sql1 : string;
+    ts : TMemoryStream;
+begin
+Result := False;
+parameter_bridging('PENDAFTARAN', 'DELETE');
+// mencari parameter pendaftaran
+
+Uri := StringReplace( Uri, '{noKartu}', no_kartu,  []);
+Uri := StringReplace( Uri, '{tglDaftar}', tanggal,  []);
+Uri := StringReplace(Uri, '{noUrut}', no_urut, []);
+Uri := StringReplace(Uri, '{kdPoli}', kd_poli, []);
+
+if ((Length(no_urut) > 1) and (Length(no_kunjungan) <= 1)) then
+begin
+  Result := httpDelete(Uri);
+  if Result then masukkanDelPendaftaran(idxstr);
+
+end;
+FDConn.Close;
+end;
+
+destructor brPendaftaran.destroy;
+begin
+   aScript.Free;
+   inherited;
+end;
+
+function brPendaftaran.getPendaftaranUrut(noUrut: string;
+  tanggalDaftar: TDate): Boolean;
+var sql0, sql1 : string;
+    tglStr : string;
+begin
+DateTimeToString(tglStr, 'dd-mm-yyyy', tanggalDaftar);
+
+Result := False;
+parameter_bridging('PENDAFTARAN URUT', 'GET');
+//ShowMessage(uri);
+Uri := StringReplace( Uri, '{noUrut}', noUrut,  []);
+Uri := StringReplace( Uri, '{tglDaftar}', tglStr,  []);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkanGetPendaftaranUrut;
+FDConn.Close;
+end;
+
+
+procedure brPendaftaran.masukkanDelPendaftaran(idxstr : string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    noUrut : string;
+begin
+//       ShowMessage('awal masukkan get');
+if logRest('DEL', tsResponse.Text) then
+begin
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+    sqlDel0 := 'update simpus.pasien_kunjungan set bpjs_urut = null where idxstr = %s;';
+    sqlDel1 := Format(sqlDel0, [quotedStr(idxstr)]);
+
+    tSl.Add(sqlDel1);
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+procedure brPendaftaran.masukkanGetPendaftaranUrut;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    nonSpesialis : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+if logRest('GET', tsResponse.Text) then
+begin
+   sqlDel0 := 'delete from simpus2.m_diagnosis where kd_diag = %s;';
+   sql0 := 'insert into simpus2.m_diagnosis(kd_diag, nm_diag, non_spesialis) values(%s, %s, %s);';
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+
+//       ShowMessage(IntToStr(dataResp.response.list._Count));
+
+   for I := 0 to dataResp.response.list._count - 1 do
+     begin
+       kdDiag := dataResp.response.list.Value(i).kdDiag;
+       nmDiag := dataResp.response.list.Value(i).nmDiag;
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+       nonSpesialis := dataResp.response.list.Value(i).nonSpesialis;
+       sqlDel1 := Format(sqlDel0,[QuotedStr(kdDiag)]);
+       tSl.Add(sqlDel1);
+
+       sql1 := Format(sql0, [QuotedStr(kdDiag), quotedStr(nmDiag), BoolToStr(nonSpesialis, True)]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+procedure brPendaftaran.masukkanPostPendaftaran(idxstr : string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    noUrut : string;
+begin
+//FileFromString(tsResponse.Text, 'resp_daftar.txt');
+// ShowMessage('awal masukkan post');
+if logRest('POST', tsResponse.Text) then
+begin
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+ //ShowMessage(tsResponse.Text);
+
+    noUrut := dataResp.response.message;
+    sqlDel0 := 'update simpus.pasien_kunjungan set bpjs_urut = %s where idxstr = %s;';
+    sqlDel1 := Format(sqlDel0, [QuotedStr(noUrut), quotedStr(idxstr)]);
+
+    tSl.Add(sqlDel1);
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+
+function brPendaftaran.postPendaftaran(idxstr : string): Boolean;
+var
+    mStream : TMemoryStream;
+    js : string;
+
+begin
+delPendaftaran(idxstr);
+
+mStream := TMemoryStream.Create;
+Result := False;
+//ShowMessage('awal pendaftaran');
+js := ambilJsonPostPendaftaran(idxstr);
+//ShowMessage('akhir ambil json pendaftaran');
+
+if Length(bpjs_urut) < 1 then
+begin
+WriteStrToStream(mStream, js);
+FormatJson := js;
+//Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+//ShowMessage('awal post pendaftaran');
+Result:= httpPost(Uri, mStream);
+//ShowMessage('setelah post pendaftaran');
+
+end;
+mStream.Free;
+if Result then masukkanPostPendaftaran(idxstr);
+FDConn.Close;
+end;
+
+end.

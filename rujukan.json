@@ -1,0 +1,60 @@
+{
+  "response": {
+    "noRujukan": "0114U1630316Y000003",
+    "ppk": {
+      "kdPPK": "0114U163",
+      "nmPPK": "Klinik Cempaka Putih (JST)",
+      "alamat": null,
+      "kc": {
+        "kdKC": "0901",
+        "nmKC": "JAKARTA PUSAT",
+        "alamat": null,
+        "telp": null,
+        "fax": null,
+        "dati": {
+          "kdProp": null,
+          "kdDati": "0114",
+          "nmDati": "KOTA JAKARTA PUSAT"
+        },
+        "kdKR": {
+          "kdKR": "04",
+          "nmKR": "REGIONAL   IV - JAKARTA",
+          "alamat": null,
+          "telp": null,
+          "fax": null
+        }
+      }
+    },
+    "tglKunjungan": "31-07-2016",
+    "poli": {
+      "kdPoli": "UGD",
+      "nmPoli": "Unit Gawat Darurat"
+    },
+    "nokaPst": "0001149957551",
+    "nmPst": "HANY TJOA",
+    "tglLahir": "16-06-1970",
+    "pisa": "1",
+    "ketPisa": "Peserta",
+    "sex": "L",
+    "diag1": {
+      "kdDiag": "A01.1",
+      "nmDiag": "Paratyphoid fever A"
+    },
+    "diag2": null,
+    "diag3": null,
+    "catatan": "",
+    "dokter": {
+      "kdDokter": "019",
+      "nmDokter": "dr henny"
+    },
+    "tacc": {
+      "nmTacc": null,
+      "alasanTacc": null
+    },
+    "infoDenda": "Anda memasuki masa denda 45 hari jika melakukan rawat inap di FKRTL mulai tanggal : 01-08-2016 sampai tanggal : 15-09-2016"
+  },
+  "metaData": {
+    "message": "OK",
+    "code": 200
+  }
+}

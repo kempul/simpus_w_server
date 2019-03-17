@@ -1,0 +1,218 @@
+unit masterPoliu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, DynVarsEh,
+  EhLibVCL, JvBaseDlg, JvProgressDialog;
+
+type
+  TForm1_masterPoli = class(TForm)
+    panelUtama: TJvPanel;
+    JvPanel1: TJvPanel;
+    JvSpinEdit1: TJvSpinEdit;
+    JvComboBox1: TJvComboBox;
+    panelUtama1: TJvPanel;
+    nav1: TJvDBNavigator;
+    JvPanel2: TJvPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    JvLabel2: TJvLabel;
+    JvBevel1: TJvBevel;
+    panelMenu: TJvPanel;
+    btn_close: TJvTransparentButton;
+    btn_mutasi: TJvTransparentButton;
+    btn_cetak: TJvTransparentButton;
+    btn_jaminan: TJvTransparentButton;
+    btn_pakandikandang: TJvTransparentButton;
+    frxDBDataset1: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    grid1: TDBGridEh;
+    memo2: TMemo;
+    pb1: TJvProgressDialog;
+    dlgSave1: TSaveDialog;
+    procedure btn_closeClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure nav1Click(Sender: TObject; Button: TNavigateBtn);
+    procedure btn_mutasiClick(Sender: TObject);
+    procedure btn_jaminanClick(Sender: TObject);
+  private
+    { Private declarations }
+    procedure awal;
+    procedure buka_data;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_masterPoli: TForm1_masterPoli;
+
+implementation
+
+uses dmMaster, aau, aau111, brPoliU;
+//, srvPoliU;
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+procedure TForm1_masterPoli.awal;
+begin
+grid1.RestoreColumnsLayoutIni(form111.MyIni, name, [crpColWidthsEh]);
+
+buka_data;
+end;
+
+procedure TForm1_masterPoli.btn_closeClick(Sender: TObject);
+begin
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+
+dataMaster.FDConnection1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMessage('0');
+end;
+
+procedure TForm1_masterPoli.btn_jaminanClick(Sender: TObject);
+var // srv : srvPoli;
+    i : Integer;
+    isUGD, isSakit, isAktif : Boolean;
+begin
+{
+if dataMaster.fdQueryMasterPoli.Modified then dataMaster.fdQueryMasterPoli.Post;
+
+pb1.Max := dataMaster.fdQueryMasterPoli.RecordCount;
+ShowMessage('Akan mengirim ke Server Dinkes dengan jumlah data : ' + intToStr(pb1.Max));
+pb1.Position := 0;
+pb1.Show;
+try
+
+with dataMaster do
+begin
+  fdQueryMasterPoli.First;
+//  ShowMessage(fdQueryToolsDinkes.FieldByName('id').AsString);
+
+  while not fdQueryMasterPoli.Eof do
+  begin
+//     ShowMessage(IntToStr(pb1.Position));
+     isUGD := fdQueryMasterPoli.FieldByName('kode').AsString = '005';
+     isSakit := fdQueryMasterPoli.FieldByName('poli_sakit').AsBoolean;
+     isAktif := fdQueryMasterPoli.FieldByName('adl_aktif').AsBoolean;
+     if not isUGD then
+     begin
+      if isSakit then
+      begin
+        srv := srvPoli.Create;
+        try
+          srv.postPoli(fdQueryMasterPoli.FieldByName('id').AsString);
+        finally
+        srv.Free;
+      end;
+      end;
+
+     end;
+  pb1.Position := pb1.Position + 1;
+  fdQueryMasterPoli.Next;
+
+  end;
+
+  fdQueryMasterPoli.First;
+  while not fdQueryMasterPoli.Eof do
+  begin
+//     ShowMessage(IntToStr(pb1.Position));
+     isUGD := fdQueryMasterPoli.FieldByName('kode').AsString = '005';
+     isSakit := fdQueryMasterPoli.FieldByName('poli_sakit').AsBoolean;
+     isAktif := fdQueryMasterPoli.FieldByName('adl_aktif').AsBoolean;
+     if not isUGD then
+     begin
+      if isSakit then
+      begin
+        srv := srvPoli.Create;
+        try
+          if not isAktif then srv.deletePoli(fdQueryMasterPoli.FieldByName('id').AsString);
+        finally
+        srv.Free;
+      end;
+      end;
+
+     end;
+     pb1.Position := pb1.Position + 1;
+     fdQueryMasterPoli.Next;
+  end;
+end;
+finally
+  pb1.Hide;
+  buka_data;
+end;
+}
+end;
+
+procedure TForm1_masterPoli.btn_mutasiClick(Sender: TObject);
+var jkn : brPoli;
+    srv : srvPoli;
+begin
+// ambil dari jkn dulu
+jkn := brPoli.Create;
+if jkn.getPoliFktp('0', '100') then
+begin
+  ShowMessage('jkn ok');
+  memo2.Lines.Assign(jkn.aScript);
+  buka_data;
+end else ShowMessage('jkn gagal');
+  memo2.Lines.Add(jkn.tsResponse.Text);
+  memo2.Lines.Add(jkn.tsHeader.Text);
+//  memo2.Lines.Add(jkn.tsResponse.Text);
+
+jkn.Free;
+
+{
+// ambil dinkes
+srv := srvPoli.Create;
+if srv.getPoli then
+begin
+  ShowMessage('dinkes ok');
+  memo2.Lines.Assign(srv.aScript);
+  buka_data;
+end else ShowMessage('dinkes gagal');
+srv.Free;
+}
+end;
+
+procedure TForm1_masterPoli.buka_data;
+begin
+with dataMaster do
+begin
+  FDConnection1.Connected := false;
+  fdQueryMasterPoli.Open;
+end;
+end;
+
+procedure TForm1_masterPoli.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_masterPoli.nav1Click(Sender: TObject; Button: TNavigateBtn);
+  var apv : string;
+begin
+
+if Button in [ nbInsert, nbEdit] then
+begin
+  grid1.Options := grid1.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+  apv := dataMaster.fdQueryMasterPoli.FieldByName('id').AsString;
+  grid1.Options := grid1.Options - [dgEditing] + [dgRowSelect];
+  if TDBNavigator(Sender).DataSource.DataSet.Modified then TDBNavigator(Sender).DataSource.DataSet.Post;
+end;
+
+
+end;
+
+end.

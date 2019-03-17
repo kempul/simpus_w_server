@@ -1,0 +1,318 @@
+unit dmpelayanan;
+
+interface
+
+uses
+  Dialogs, SysUtils, Classes, JvDataSource, Data.DB, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.Stan.Param, FireDAC.DatS,
+  FireDAC.DApt.Intf, FireDAC.Comp.Client, FireDAC.DApt, FireDAC.Comp.DataSet,
+  FireDAC.VCLUI.Wait, FireDAC.Comp.UI;
+
+type
+  TdataPelayanan = class(TDataModule)
+    fdpgdriver1: TFDPhysPgDriverLink;
+    fdCmd1: TFDCommand;
+    fdQueryBuka: TFDQuery;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    fdQueryKunjungan: TFDQuery;
+    dsKunjungan: TJvDataSource;
+    fdQueryFisik: TFDQuery;
+    dsFisik: TJvDataSource;
+    fdQueryRm: TFDQuery;
+    dsRm: TJvDataSource;
+    fdQueryIcdxCek: TFDQuery;
+    fdQueryDiagnosaTerakhir: TFDQuery;
+    fdQueryCariIdcx: TFDQuery;
+    dsCariIcdx: TJvDataSource;
+    fdQueryCheckSpesialis: TFDQuery;
+    fdQueryIdxGigi: TFDQuery;
+    fdQueryTindakanGigiTerakhir: TFDQuery;
+    fdQueryMTindakanLU: TFDQuery;
+    dsMTindakanLU: TJvDataSource;
+    fdQueryTindakanTerakhir: TFDQuery;
+    fdQueryObatPasien: TFDQuery;
+    dsObatPasien: TJvDataSource;
+    fdQueryObatCari: TFDQuery;
+    dsObatCari: TJvDataSource;
+    fdQueryObatPasienTerakhir: TFDQuery;
+    fdQueryImunisasi: TFDQuery;
+    dsImunisasi: TJvDataSource;
+    fdQueryMImunisasiCari: TFDQuery;
+    dsMImunisasiCari: TJvDataSource;
+    fdQueryImunisasiTerakhir: TFDQuery;
+    fdQueryTindakanGigi: TFDQuery;
+    dsTindakanGigi: TJvDataSource;
+    fdQueryTindakan: TFDQuery;
+    dsTindakan: TJvDataSource;
+    fdQueryIdxPoned: TFDQuery;
+    fdQueryPoned: TFDQuery;
+    dsPoned: TJvDataSource;
+    fdQueryRujukanMaster: TFDQuery;
+    dsRujukanMaster: TJvDataSource;
+    fdQueryRujukanRm: TFDQuery;
+    dsRujukanRm: TJvDataSource;
+    fdQueryRegisterHarian: TFDQuery;
+    fdQueryPuskesmas: TFDQuery;
+    fdQueryRegisterResume: TFDQuery;
+    fdQueryLab: TFDQuery;
+    dsLab: TJvDataSource;
+    dsMLabCari: TJvDataSource;
+    fdQueryMLabCari: TFDQuery;
+    fdQueryPasienLabTerakhir: TFDQuery;
+    fdQueryRegisterByPoli: TFDQuery;
+    fdQueryResumePoli: TFDQuery;
+    FDConnection1: TFDConnection;
+    fdQ1Cetak: TFDQuery;
+    fdQ1CetakNon: TFDQuery;
+    fdQ1AntriAmbil: TFDQuery;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure qKKNewRecord(DataSet: TDataSet);
+    procedure fdQueryRmBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryImunisasiBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryTindakanGigiBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryTindakanBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryPonedBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryFisikBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryLabBeforeDelete(DataSet: TDataSet);
+    procedure fdQueryObatPasienBeforeDelete(DataSet: TDataSet);
+    procedure DataModuleDestroy(Sender: TObject);
+  private
+    { Private declarations }
+     SLConn : TStringList;
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getDB;
+     function hapusDiagnosa(id : string) : Boolean;
+     function hapusFisik(id : string) : Boolean;
+     function hapusImunisasi(id : string) : Boolean;
+     function hapusTindakanGigi(id : string) : Boolean;
+     function hapusTindakan(id : string) : Boolean;
+     function hapusPoned(id : string) : Boolean;
+     function hapusPasienLab(id : string) : Boolean;
+     function hapusPasienObat(id : string) : Boolean;
+
+  public
+    { Public declarations }
+  end;
+
+var
+  dataPelayanan: TdataPelayanan;
+
+implementation
+
+uses kunciu, aau111, aau, brPendaftaranU, OtlParallel, brTindakanU, brObatU;
+//, srvFisikU, SrvParallelU;
+
+{$R *.dfm}
+
+procedure TdataPelayanan.DataModuleCreate(Sender: TObject);
+begin
+SLConn := TStringList.Create;
+getDB;
+end;
+
+procedure TdataPelayanan.DataModuleDestroy(Sender: TObject);
+begin
+FDManager.Active := False;
+SLConn.Free;
+end;
+
+procedure TdataPelayanan.fdQueryFisikBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+id := DataSet.FieldByName('idxstr').OldValue;
+hapusFisik(id);
+end;
+
+procedure TdataPelayanan.fdQueryImunisasiBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+id := DataSet.FieldByName('id').OldValue;
+hapusImunisasi(id);
+end;
+
+procedure TdataPelayanan.fdQueryLabBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+id := DataSet.FieldByName('id').OldValue;
+hapusPasienLab(id);
+end;
+
+procedure TdataPelayanan.fdQueryObatPasienBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+//ShowMessage('tindakan before');
+id := DataSet.FieldByName('id').OldValue;
+ShowMessage('obat before : ' + id);
+hapusPasienObat(id);
+end;
+
+procedure TdataPelayanan.fdQueryPonedBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+id := DataSet.FieldByName('idxstr').OldValue;
+hapusPoned(id);
+end;
+
+procedure TdataPelayanan.fdQueryRmBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+id := DataSet.FieldByName('id_diag').OldValue;
+hapusDiagnosa(id);
+end;
+
+procedure TdataPelayanan.fdQueryTindakanBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+ShowMessage('tindakan before');
+id := DataSet.FieldByName('id_tindakan').OldValue;
+ShowMessage('tindakan before : ' + id);
+hapusTindakan(id);
+end;
+
+procedure TdataPelayanan.fdQueryTindakanGigiBeforeDelete(DataSet: TDataSet);
+var id : string;
+begin
+id := DataSet.FieldByName('id_tindakangigi').OldValue;
+hapusTindakanGigi(id);
+end;
+
+procedure TdataPelayanan.getDB;
+begin
+//if FDConnection1.Connected then FDConnection1.Connected := false;
+
+//FDConnection1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+SLConn.Add('Server=' + pghost);
+  SLConn.Add('Port=' +  pgport);
+  SLConn.Add('Database= ' + pgdb);
+  SLConn.Add('User_name=' + pguser);
+  SLConn.Add('Password=' + pgpasswd);
+  SLConn.Add('Pooled=True');
+
+  fdManager.AddConnectionDef('PGLAYAN_CONN', 'PG', SLConn, False);
+  fdManager.Active := True;
+  FDConnection1.ConnectionDefName := 'PGLAYAN_CONN';
+  FDConnection1.Connected := True;
+end;
+
+function TdataPelayanan.hapusDiagnosa(id: string): Boolean;
+//var srv : SrvParallel;
+begin
+ {
+   srv := SrvParallel.Create;
+   try
+     srv.diagnosaDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TdataPelayanan.hapusFisik(id: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.fisikDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TdataPelayanan.hapusImunisasi(id: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.imunisasiDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TdataPelayanan.hapusPasienLab(id: string): Boolean;
+//var srv : SrvParallel;
+begin
+   {
+   srv := SrvParallel.Create;
+   try
+     srv.pasienLabDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TdataPelayanan.hapusPasienObat(id: string): Boolean;
+  var srv : brObat;
+begin
+
+   srv := brObat.Create;
+   try
+     srv.delObat(id);
+   finally
+     srv.Free;
+   end;
+
+end;
+
+function TdataPelayanan.hapusPoned(id: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.ponedDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TdataPelayanan.hapusTindakan(id: string): Boolean;
+  var srv : brTindakan;
+begin
+
+   srv := brTindakan.Create;
+   try
+     srv.delTindakan(id);
+   finally
+     srv.Free;
+   end;
+
+end;
+
+function TdataPelayanan.hapusTindakanGigi(id: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.tindakangigiDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+procedure TdataPelayanan.qKKNewRecord(DataSet: TDataSet);
+begin
+DataSet.FieldByName('last_update').AsDateTime := Now;
+DataSet.FieldByName('kota').AsString := 'REMBANG';
+DataSet.FieldByName('prop').AsString := 'JAWA TENGAH';
+end;
+
+end.
+

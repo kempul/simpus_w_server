@@ -1,0 +1,292 @@
+unit brMcuU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils, synautil;
+type
+
+  brMcu = class(bridgeCommon)
+    private
+//    procedure masukkanGetPendaftaranUrut;
+    is_post : Boolean;
+    //no_kartu : string;
+   // no_kunjungan : string;
+    procedure masukkanPostMcu(id : string);
+    procedure masukkanPutMcu(id : string);
+    procedure masukkanDelMcu(id : string);
+    function StrToPostgesDate (strDate : string) : string;
+
+    public
+    aScript : TStringList;
+    function ambilJsonMcu(id : string) : string;
+    function postMcu(id : string) : Boolean;
+    function delMcu(id : string) : Boolean;
+
+
+    constructor Create;
+    destructor destroy;
+//    property Uri : string;
+  end;
+
+implementation
+     uses SynCommons;
+
+{ brKunjungan }
+
+function brMcu.ambilJsonMcu(id : string): String;
+var sql0, sql1 : string;
+    tglStr, tglPulangStr, noKunjungan, noKartu : string;
+    i : Integer;
+    V1 : Variant;
+begin
+  Result := '';
+  parameter_bridging('MCU', 'POST');
+  V1 :=  _Json(FormatJson);
+
+  sql0 := 'select * from jkn.mcu_view where id = %s and bpjs_kunjungan is not null and adl_isi > 0;';
+  sql1 := Format(sql0,[QuotedStr(id)]);
+  fdQuery.Close;
+  fdQuery.SQL.Clear;
+  fdQuery.SQL.Add(sql1);
+  fdQuery.Open;
+
+  if not fdQuery.IsEmpty then
+  begin
+    //ShowMessage('not empty');
+    DateTimeToString(tglStr, 'DD-MM-YYYY', fdQuery.FieldByName('tanggal').AsDateTime);
+    //DateTimeToString(tglPulangStr, 'DD-MM-YYYY', fdQuery.FieldByName('pulang_tanggal').AsDateTime);
+    if fdQuery.FieldByName('kd_mcu').AsInteger = 0 then is_post := true else
+       begin
+          is_post := False;
+       end;
+
+    V1.kdMCU := fdQuery.FieldByName('kd_mcu').AsInteger;
+    V1.noKunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+    V1.kdProvider := fdQuery.FieldByName('provider_bpjs').AsString;
+    V1.tglPelayanan := tglStr;
+    V1.tekananDarahSistole := fdQuery.FieldByName('tekanan_darah_sistole').AsInteger;
+    V1.tekananDarahDiastole := fdQuery.FieldByName('tekanan_darah_diastole').AsInteger;
+    V1.darahRutinHemo := fdQuery.FieldByName('darah_rutin_hemo').AsFloat;
+    V1.darahRutinLeu := fdQuery.FieldByName('darah_rutin_leu').AsFloat;
+     V1.darahRutinErit := fdQuery.FieldByName('darah_rutin_erit').AsFloat;
+     V1.darahRutinLaju := fdQuery.FieldByName('darah_rutin_laju').AsFloat;
+     V1.darahRutinHema := fdQuery.FieldByName('darah_rutin_hema').AsFloat;
+     V1.darahRutinTrom := fdQuery.FieldByName('darah_rutin_trom').AsFloat;
+     V1.lemakDarahHdl := fdQuery.FieldByName('lemak_darah_hdl').AsFloat;
+     V1.lemakDarahLdl := fdQuery.FieldByName('lemak_darah_ldl').AsFloat;
+     V1.lemakDarahChol := fdQuery.FieldByName('lemak_darah_chol').AsFloat;
+     V1.lemakDarahTrigli := fdQuery.FieldByName('lemak_darah_trigli').AsFloat;
+
+     V1.gulaDarahSewaktu := fdQuery.FieldByName('gula_darah_sewaktu').AsFloat;
+     V1.gulaDarahPuasa := fdQuery.FieldByName('gula_darah_puasa').AsFloat;
+     V1.gulaDarahPostPrandial := fdQuery.FieldByName('gula_darah_post_prandial').AsFloat;
+     V1.gulaDarahHbA1c := fdQuery.FieldByName('gula_darah_hba1c').AsFloat;
+
+     V1.fungsiHatiSGOT := fdQuery.FieldByName('fungsi_hati_sgot').AsFloat;
+     V1.fungsiHatiSGPT := fdQuery.FieldByName('fungsi_hati_sgpt').AsFloat;
+     V1.fungsiHatiGamma := fdQuery.FieldByName('fungsi_hati_gamma').AsFloat;
+     V1.fungsiHatiProtKual := fdQuery.FieldByName('fungsi_hati_prot_kual').AsFloat;
+     V1.fungsiHatiAlbumin := fdQuery.FieldByName('fungsi_hati_albumin').AsFloat;
+
+     V1.fungsiGinjalCrea := fdQuery.FieldByName('fungsi_ginjal_crea').AsFloat;
+     V1.fungsiGinjalUreum := fdQuery.FieldByName('fungsi_ginjal_ureum').AsFloat;
+     V1.fungsiGinjalAsam := fdQuery.FieldByName('fungsi_ginjal_asam').AsFloat;
+
+     V1.fungsiJantungABI := fdQuery.FieldByName('fungsi_jantung_abi').AsFloat;
+
+    {
+     if not fdQuery.FieldByName('kd_provider').IsNull then
+        V1.kdProviderRujukLanjut := fdQuery.FieldByName('kd_provider').AsString;
+}
+     V1.pemeriksaanLain := fdQuery.FieldByName('pemeriksaan_lain').AsString;
+     V1.keterangan := fdQuery.FieldByName('keterangan').AsString;
+
+
+    fdQuery.Close;
+    Result := VariantSaveJSON(V1);
+  end else fdQuery.Close;
+  //FileFromString(Result, 'kunjunganxxx.json');
+  //ShowMessage(Result);
+end;
+
+
+constructor brMcu.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+  //no_kunjungan := '';
+end;
+
+function brMcu.delMcu(id: string): Boolean;
+var sql0, sql1 : string;
+    tglStr, jejak : string;
+    kdMCU, noKunjungan : string;
+    ts : TMemoryStream;
+begin
+
+Result := False;
+parameter_bridging('MCU', 'DELETE');
+// mencari parameter pendaftaran
+//ShowMessage('awal del');
+sql0 := 'select kd_mcu, bpjs_kunjungan from jkn.mcu_view where id = %s;';
+sql1 := Format(sql0, [quotedStr(id)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open;
+//jejak := id_tindakan;
+kdMCU := fdQuery.FieldByName('kd_mcu').AsString;
+noKunjungan := fdQuery.FieldByName('bpjs_kunjungan').AsString;
+fdQuery.Close;
+
+Uri := StringReplace( Uri, '{kdmcu}', kdMCU,  []);
+Uri := StringReplace( Uri, '{noKunjungan}', noKunjungan,  []);
+//Uri := StringReplace(Uri, '{noUrut}', noUrut, []);
+//showMessage(kdTindakanSk);
+if StrToIntDef(kdMCU, 0) > 0 then
+begin
+  //showMessage('tes');
+  Result := httpDelete(Uri);
+  jejakIdxstr := id;
+  if Result then masukkanDelMCU(id);
+
+end;
+FDConn.Close;
+end;
+
+destructor brMcu.destroy;
+begin
+  aScript.Free;
+  inherited;
+end;
+
+
+
+
+procedure brMcu.masukkanDelMcu(id: string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    kdTindakanSk : integer;
+    kdRacikan : string;
+begin
+//       ShowMessage('awal masukkan get');
+if logRest('DEL', 'MCU', tsResponse.Text) then
+begin
+//   DateTimeToString(tglStr, 'YYYY-MM-DD', tgl);
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+     sqlDel0 := 'update jkn.bpjs_mcu set kd_mcu = 0 where id = %s;';
+     sqlDel1 := Format(sqlDel0, [quotedStr(id)]);
+
+    tSl.Add(sqlDel1);
+
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+procedure brMcu.masukkanPostMcu(id : string);
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdDiag, nmDiag : string;
+    tglStr : string;
+    nonSpesialis : Boolean;
+    kdMcu : integer;
+    noKunjungan : string;
+begin
+//       ShowMessage(tsResponse.Text);
+   if logRest('POST', 'MCU', tsResponse.Text) then
+   begin
+  tsL := TStringList.Create;
+
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+  // ShowMessage(tsResponse.Text);
+    kdMcu := dataResp.response.message;
+    sqlDel0 := 'update jkn.bpjs_mcu set kd_mcu = %s where id = %s;';
+    sqlDel1 := Format(sqlDel0, [intToStr(kdMcu), quotedStr(id)]);
+    tSl.Add(sqlDel1);
+    jalankanScript(tSl);
+
+   finally
+     FreeAndNil(tSl);
+  end;
+   end;
+
+end;
+
+procedure brMcu.masukkanPutMcu(id : string);
+begin
+  logRest('PUT', 'MCU', tsResponse.Text);
+end;
+
+function brMcu.postMcu(id : string): Boolean;
+var
+    mStream : TMemoryStream;
+    js : string;
+
+begin
+
+js := ambilJsonMcu(id);
+
+if Length(js) > 10 then
+begin
+
+mStream := TMemoryStream.Create;
+try
+Result := False;
+WriteStrToStream(mStream, js);
+if  is_post then
+begin
+   //Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+  Result:= httpPost(Uri, mStream);
+  jejakIdxstr := id;
+  FormatJson := js;
+  if Result then masukkanPostMcu(id);
+end else
+begin
+  //Uri := ReplaceStr(Uri, '{nokartu}', no_kartu);
+  Result := httpPut(Uri, mStream);
+  jejakIdxstr := id;
+  FormatJson := js;
+  if Result then masukkanPutMcu(id);
+end;
+
+finally
+  mStream.Free;
+end;
+
+end;
+FDConn.Close;
+end;
+
+
+
+
+function brMcu.StrToPostgesDate(strDate: string): string;
+var
+  formatAsli : Char;
+  myDate : TDateTime;
+  myDateStr : string;
+begin
+  formatAsli := FormatSettings.DateSeparator;
+  FormatSettings.DateSeparator := '-';
+  myDate := StrToDate(strDate);
+  DateTimeToString(myDateStr, 'YYYY-MM-DD', myDate);
+  FormatSettings.DateSeparator := formatAsli;
+  Result := myDateStr;
+
+end;
+
+end.

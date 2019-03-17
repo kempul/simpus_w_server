@@ -1,0 +1,112 @@
+unit srvBiayaU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  srvBiaya = class(srvCommon)
+    private
+    function jsonToSql(table : string = 'simpus.m_instalasi'; json : string = ''; update : Boolean = False; pkey : string = '') : string;
+    public
+    aScript : TStringList;
+    function getBiaya : Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkangetBiaya;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot;
+{ srvBiaya }
+
+constructor srvBiaya.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvBiaya.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvBiaya.getBiaya: Boolean;
+var sql0, sql1 : string;
+
+begin
+Result := False;
+parameter_bridging('biaya', 'get');
+//ShowMessage(uri);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkangetBiaya;
+
+end;
+
+
+function srvBiaya.jsonToSql(table, json: string; update: Boolean;
+  pkey: string): string;
+var awal, akhir : string;
+begin
+   if update then
+   begin
+     akhir := 'update %s set %s where ';
+     awal := GetJSONObjectAsSQL(json, update, False);
+     Result := awal;
+   end else
+   begin
+     akhir := 'insert into %s %s';
+     awal := GetJSONObjectAsSQL(json, update,False);
+     Result := format(akhir,[table, awal]);
+   end;
+end;
+
+procedure srvBiaya.masukkangetBiaya;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlx0, sqlx1 : string;
+    sql0, sql1 : string;
+    dBiaya, dIdRpt, boolStr : string;
+    adlAktif : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sql0 := 'insert into simpus.m_pasien_biaya(biaya, id_rpt, adl_aktif) values(%s, %s, %s) '+
+           'on conflict (biaya) ' +
+           'do ' +
+           'update set ' +
+           'id_rpt = excluded.id_rpt, '+
+           'ald_aktif = excluded.adl_aktif;';
+   tsL := TStringList.Create;
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+
+   for I := 0 to dataResp._count - 1 do
+     begin
+       dBiaya := dataResp.Value(i).biaya;
+       dIdRpt := dataResp.Value(i).idRpt;
+       adlAktif := dataResp.Value(i).adlAktif;
+       boolStr := BoolToStr(adlAktif, True);
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+
+       sql1 := Format(sql0, [QuotedStr(dBiaya), QuotedStr(dIdRpt), boolStr]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+   finally
+      aScript.Assign(tSl);
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+
+end.

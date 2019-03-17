@@ -1,0 +1,32 @@
+unit tesU;
+
+interface
+  uses classes;
+   type
+   tipeClass = class
+     private
+     Ftes : string;
+     tsHeader : TStringList;
+     public
+     constructor create;
+     destructor destroy;
+     property tes: string  read Ftes write Ftes;
+   end;
+implementation
+
+{ tipeClass }
+
+constructor tipeClass.create;
+begin
+  Ftes := 'awal';
+  tsHeader := TStringList.Create;
+  tsHeader.Add('awal tsHeader');
+end;
+
+destructor tipeClass.destroy;
+begin
+  tsHeader.Free;
+  inherited;
+end;
+
+end.

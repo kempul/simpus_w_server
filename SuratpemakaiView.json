@@ -1,0 +1,64 @@
+{
+  "content": [
+    {
+      "suratpemakaiId": "1@11",
+      "pemakai": 1,
+      "idx": 11,
+      "status": "baru",
+      "nomor": "bla nomor",
+      "tanggal": "2017-11-18",
+      "dari": "lho asal",
+      "ihwal": "iki ihwal",
+      "resume": "resume",
+      "rahasia": 0,
+      "masuk": "2017-11-18 12:44:47",
+      "namafile": "",
+      "tgl_disposisi": null,
+      "tujuan": null,
+      "isi": null,
+      "tgl_lanjut": null,
+      "lanjut": null
+    },
+    {
+      "suratpemakaiId": "1@10",
+      "pemakai": 1,
+      "idx": 10,
+      "status": "baru",
+      "nomor": "editNomor/10",
+      "tanggal": "2017-11-17",
+      "dari": "editNomor",
+      "ihwal": "editIhwal",
+      "resume": "contoh resume surat",
+      "rahasia": 0,
+      "masuk": "2017-11-17 06:16:52",
+      "namafile": "",
+      "tgl_disposisi": null,
+      "tujuan": null,
+      "isi": null,
+      "tgl_lanjut": null,
+      "lanjut": null
+    }
+  ],
+  "pageable": {
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    },
+    "offset": 0,
+    "pageSize": 2,
+    "pageNumber": 0,
+    "unpaged": false,
+    "paged": true
+  },
+  "totalElements": 4,
+  "totalPages": 2,
+  "last": false,
+  "size": 2,
+  "number": 0,
+  "sort": {
+    "sorted": true,
+    "unsorted": false
+  },
+  "first": true,
+  "numberOfElements": 2
+}

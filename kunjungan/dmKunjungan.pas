@@ -1,0 +1,114 @@
+unit dmKunjungan;
+
+interface
+
+uses
+  SysUtils, Classes, JvDataSource, Data.DB, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.Stan.Param, FireDAC.DatS,
+  FireDAC.DApt.Intf, FireDAC.Comp.ScriptCommands, FireDAC.Stan.Util,
+  FireDAC.Comp.Script, FireDAC.Comp.Client, FireDAC.DApt, FireDAC.Comp.DataSet,
+  FireDAC.VCLUI.Wait, FireDAC.Comp.UI;
+
+type
+  TdataKunjungan = class(TDataModule)
+    dsPasienCari: TJvDataSource;
+    dsKunjungan: TJvDataSource;
+    dsBankData: TJvDataSource;
+    fdpgdriver1: TFDPhysPgDriverLink;
+    fdCmd1: TFDCommand;
+    fdScript2: TFDScript;
+    fdQueryBuka: TFDQuery;
+    fdQueryBankData: TFDQuery;
+    fdQueryPasienCari: TFDQuery;
+    fdSpPvNikPindah: TFDStoredProc;
+    fdSpMrUpdateAuto: TFDStoredProc;
+    fdQueryKunjungan: TFDQuery;
+    fdQueryCariMr: TFDQuery;
+    fdQueryPesertaBpjs: TFDQuery;
+    fdQueryAntriAmbil: TFDQuery;
+    fdQueryPkmUnique: TFDQuery;
+    fdQCetak: TFDQuery;
+    FDConnection1: TFDConnection;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    fdQ1del: TFDQuery;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure qPasienKunjunganAfterScroll(DataSet: TDataSet);
+    procedure qKKNewRecord(DataSet: TDataSet);
+    procedure DataModuleDestroy(Sender: TObject);
+  private
+    { Private declarations }
+     SLConn : TStringList;
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getDB;
+
+  public
+    { Public declarations }
+  end;
+
+var
+  dataKunjungan: TdataKunjungan;
+
+implementation
+
+uses kunciu, aau111, aau;
+
+{$R *.dfm}
+
+procedure TdataKunjungan.DataModuleCreate(Sender: TObject);
+
+begin
+SLConn := TStringList.Create;
+getDB;
+end;
+
+procedure TdataKunjungan.DataModuleDestroy(Sender: TObject);
+begin
+SLConn.Free;
+FDManager.Close;
+end;
+
+procedure TdataKunjungan.getDB;
+begin
+//if FDConnection1.Connected then FDConnection1.Connected := false;
+//FDConnection1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+//FDConnection1.Params.Clear;
+//SLConn.Add('DriverID=PG');
+
+
+  SLConn.Add('Server=' + pghost);
+  SLConn.Add('Port=' +  pgport);
+  SLConn.Add('Database= ' + pgdb);
+  SLConn.Add('User_name=' + pguser);
+  SLConn.Add('Password=' + pgpasswd);
+  SLConn.Add('Pooled=True');
+
+  fdManager.AddConnectionDef('PGDAFTAR_CONN', 'PG', SLConn, False);
+  fdManager.Active := True;
+  FDConnection1.ConnectionDefName := 'PGDAFTAR_CONN';
+  FDConnection1.Connected := True;
+
+end;
+
+procedure TdataKunjungan.qKKNewRecord(DataSet: TDataSet);
+begin
+DataSet.FieldByName('last_update').AsDateTime := Now;
+DataSet.FieldByName('kota').AsString := 'REMBANG';
+DataSet.FieldByName('prop').AsString := 'JAWA TENGAH';
+end;
+
+procedure TdataKunjungan.qPasienKunjunganAfterScroll(DataSet: TDataSet);
+begin
+//form1_aa.PipeClient1.SendMesssage('1001');
+end;
+
+end.
+

@@ -1,0 +1,106 @@
+unit srvInstalasiU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  srvInstalasi = class(srvCommon)
+    private
+    function jsonToSql(table : string = 'simpus.m_instalasi'; json : string = ''; update : Boolean = False; pkey : string = '') : string;
+    public
+    aScript : TStringList;
+    function getInstalasi : Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkangetInstalasi;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot;
+{ srvInstalasi }
+
+constructor srvInstalasi.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvInstalasi.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvInstalasi.getInstalasi: Boolean;
+var sql0, sql1 : string;
+
+begin
+Result := False;
+parameter_bridging('instalasi', 'get');
+//ShowMessage(uri);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkangetInstalasi;
+FDConn.Close;
+end;
+
+
+function srvInstalasi.jsonToSql(table, json: string; update: Boolean;
+  pkey: string): string;
+var awal, akhir : string;
+begin
+   if update then
+   begin
+     akhir := 'update %s set %s where ';
+     awal := GetJSONObjectAsSQL(json, update, False);
+     Result := awal;
+   end else
+   begin
+     akhir := 'insert into %s %s';
+     awal := GetJSONObjectAsSQL(json, update,False);
+     Result := format(akhir,[table, awal]);
+   end;
+end;
+
+procedure srvInstalasi.masukkangetInstalasi;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlx0, sqlx1 : string;
+    sqlDel0, sql0, sql1 : string;
+    dInstalasi : string;
+    poliSakit : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sqlDel0 := 'delete from simpus.m_instalasi where instalasi is not null;';
+   sql0 := 'insert into simpus.m_instalasi(instalasi) values(%s);';
+   tsL := TStringList.Create;
+   tSl.Add(sqlDel0);
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+
+   for I := 0 to dataResp._count - 1 do
+     begin
+       dInstalasi := dataResp.Value(i).instalasi;
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+
+       sql1 := Format(sql0, [QuotedStr(dInstalasi)]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+   finally
+      aScript.Assign(tSl);
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+
+end.

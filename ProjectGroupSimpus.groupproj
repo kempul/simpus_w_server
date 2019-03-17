@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{8A6FCF52-5502-4633-9B32-8633A12479A2}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="simpus.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Test\simpusTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="simpus">
+        <MSBuild Projects="simpus.dproj"/>
+    </Target>
+    <Target Name="simpus:Clean">
+        <MSBuild Projects="simpus.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="simpus:Make">
+        <MSBuild Projects="simpus.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="simpusTests">
+        <MSBuild Projects="Test\simpusTests.dproj"/>
+    </Target>
+    <Target Name="simpusTests:Clean">
+        <MSBuild Projects="Test\simpusTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="simpusTests:Make">
+        <MSBuild Projects="Test\simpusTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="simpus;simpusTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="simpus:Clean;simpusTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="simpus:Make;simpusTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

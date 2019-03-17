@@ -1,0 +1,867 @@
+unit faskesRujukanU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, DBGridEhGrouping, ToolCtrlsEh,
+  DBGridEhToolCtrls, DynVarsEh, Vcl.StdCtrls, JvExStdCtrls, JvCheckBox,
+  EhLibVCL, GridsEh, DBAxisGridsEh, DBGridEh, Vcl.ComCtrls, JvExComCtrls,
+  JvComCtrls, Vcl.ExtCtrls, JvCombobox, JvDBSearchComboBox, JvExControls,
+  JvStaticText, JvDateTimePicker, JvgGroupBox, JvBaseDlg, JvProgressDialog,
+  frxClass, frxDBSet, frxBarcode, Vcl.Mask, Vcl.DBCtrls;
+
+type
+  TForm1_faskesRujukan = class(TForm)
+    pnl4: TPanel;
+    pnl5: TPanel;
+    btn7: TButton;
+    btn8: TButton;
+    pnl1: TPanel;
+    pnl19: TPanel;
+    rg1: TRadioGroup;
+    pnlKhusus: TPanel;
+    pageControlRujuk: TJvPageControl;
+    tsSubSpesialis: TTabSheet;
+    grpSarana: TGroupBox;
+    pnl8: TPanel;
+    chkSarana: TJvCheckBox;
+    grid1: TDBGridEh;
+    grpFaskes: TGroupBox;
+    gridFaskesSub: TDBGridEh;
+    pnl9: TPanel;
+    btn12: TButton;
+    pnl2: TPanel;
+    grpSpesialis: TGroupBox;
+    pnl7: TPanel;
+    btn10: TButton;
+    grid4: TDBGridEh;
+    grpSubSpesialis: TGroupBox;
+    pnl6: TPanel;
+    btn9: TButton;
+    cbbnm_sub_spesialis: TJvDBSearchComboBox;
+    tsKhusus2: TTabSheet;
+    pnl13: TPanel;
+    grp2: TGroupBox;
+    pnl15: TPanel;
+    btn14: TButton;
+    gridFaskesKhusus: TDBGridEh;
+    pnl3: TPanel;
+    grp1: TGroupBox;
+    grid8: TDBGridEh;
+    grp1MKhusus2: TGroupBox;
+    grid6: TDBGridEh;
+    ts1: TTabSheet;
+    mmoHasil: TMemo;
+    mmoDummi: TMemo;
+    mmoKhusus1: TMemo;
+    mmoSub: TMemo;
+    grpC2: TGroupBox;
+    editCatatan: TEdit;
+    mmoAkhir: TMemo;
+    grpTgl: TGroupBox;
+    dtPickerRujuk: TJvDateTimePicker;
+    grp3: TJvgGroupBox;
+    grpTacc: TJvgGroupBox;
+    cbbTacc: TJvComboBox;
+    pageControlTacc: TJvPageControl;
+    ts2: TTabSheet;
+    cbbTime: TJvComboBox;
+    ts3: TTabSheet;
+    cbbAge: TJvComboBox;
+    ts4: TTabSheet;
+    staticText1: TJvStaticText;
+    btn1Diagnosa: TButton;
+    ts5: TTabSheet;
+    chk1NonSpesialis: TJvCheckBox;
+    editNoKartu: TEdit;
+    editIdxstr: TEdit;
+    btn1: TButton;
+    pb1: TJvProgressDialog;
+    frxdb1Cetak: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    staticText2: TJvStaticText;
+    btn2Diagnosa: TButton;
+    frxbrcdbjct1: TfrxBarCodeObject;
+    btn2Khusus2: TButton;
+    btn2Khusus2Sub: TButton;
+    dbedit1Khusus: TDBEdit;
+    chk1Bpjs: TJvCheckBox;
+    frxdb1CetakNon: TfrxDBDataset;
+    frxReport2: TfrxReport;
+    btn2: TButton;
+    procedure FormShow(Sender: TObject);
+    procedure rg1Click(Sender: TObject);
+    procedure btn10Click(Sender: TObject);
+    procedure btn9Click(Sender: TObject);
+    procedure chkSaranaClick(Sender: TObject);
+    procedure btn12Click(Sender: TObject);
+    procedure cbbTaccChange(Sender: TObject);
+    procedure btn1DiagnosaClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btn7Click(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
+    procedure pb1Progress(Sender: TObject; var AContinue: Boolean);
+    procedure btn2DiagnosaClick(Sender: TObject);
+    procedure dbedit1KhususChange(Sender: TObject);
+    procedure btn2Khusus2Click(Sender: TObject);
+    procedure btn2Khusus2SubClick(Sender: TObject);
+    procedure btn14Click(Sender: TObject);
+    procedure btn2Click(Sender: TObject);
+    procedure dtPickerRujukChange(Sender: TObject);
+  private
+    { Private declarations }
+    iDummi : Integer;
+    kd_tacc : Integer;
+    nm_tacc : String;
+    alasan_tacc : string;
+    procedure awal;
+    procedure atur_halaman( indek : Integer);
+    procedure atur_halaman_tacc(indek : Integer);
+
+
+    procedure get_spesialis;
+    procedure get_sub_spesialis(spesialis : string);
+    procedure get_khusus;
+
+    procedure get_faskes_sub(vsub, vsarana : string; tanggal : TDate);
+    procedure get_faskes_khusus_jkn(vkhusus, vsub : string; tanggal : TDate);
+    procedure get_faskes_khusus_bayar(vkhusus, vsub : string; tanggal : TDate);
+
+    function buat_tacc(v0 : Variant): string;
+    procedure buat_sub_json;
+    procedure buat_khusus1_json;
+    procedure buat_khusus2_json;
+    procedure buat_khusus_json;
+
+    procedure set_tacc;
+
+    procedure update_data_sub(idxstr : string);
+    procedure update_data_khusus(idxstr : string);
+
+    function kirim_bpjs : boolean;
+    function ambil_dari_bpjs : boolean;
+
+    procedure buka_faskes_khusus_jkn;
+    procedure buka_faskes_khusus_bayar;
+    procedure tampilkan_faskes_khusus_jkn;
+    procedure tampilkan_faskes_khusus_bayar;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_faskesRujukan: TForm1_faskesRujukan;
+
+implementation
+
+{$R *.dfm}
+
+uses dmRujukanU, brFktlU, aau111, SynCommons, brKunjunganU, ICDXCariu;
+
+{ TForm1_faskesRujukan }
+
+
+function TForm1_faskesRujukan.ambil_dari_bpjs : boolean;
+var
+  br0 : brKunjungan;
+begin
+Result := False;
+pb1.Caption := 'Mengambil data dari BPJS.... ';
+br0 := brKunjungan.Create;
+try
+  Result := br0.getRujukan(editIdxstr.Text);
+finally
+  br0.Free;
+end;
+pb1.Caption := 'Hampir selesai.... ';
+pb1.Position := pb1.Position + 1;
+end;
+
+procedure TForm1_faskesRujukan.atur_halaman(indek: Integer);
+begin
+pageControlRujuk.HideAllTabs := True;
+pageControlRujuk.ActivePageIndex := indek;
+
+pageControlRujuk.Pages[indek].TabVisible := True;
+pageControlRujuk.Pages[pageControlRujuk.PageCount - 1].TabVisible := True;
+editCatatan.Clear;
+
+{
+case pageControlRujuk.ActivePageIndex of
+1 : begin
+  with dataRujukan do
+begin
+  fdQ1Khusus.Close;
+  fdQ1Khusus.Open();
+end;
+
+end;
+
+end;
+}
+end;
+
+procedure TForm1_faskesRujukan.atur_halaman_tacc(indek: Integer);
+begin
+pageControlTacc.HideAllTabs := True;
+if indek = 0 then pageControlTacc.Visible := False else
+begin
+  pageControlTacc.Visible := True;
+  pageControlTacc.ActivePageIndex := indek - 1;
+
+  case pageControlTacc.ActivePageIndex of
+  1 : cbbTime.ItemIndex := 0;
+  2 : cbbAge.ItemIndex := 0;
+  3 : staticText1.Caption := '-';
+  4 : staticText2.Caption := '-';
+  end;
+
+end;
+
+end;
+
+procedure TForm1_faskesRujukan.awal;
+begin
+gridFaskesKhusus.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+gridFaskesSub.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+
+if chk1NonSpesialis.Checked then
+begin
+  ShowMessage('Disgnosa Non Spesialis, Isi Alasan TAcc');
+end;
+
+grpTacc.Visible := chk1NonSpesialis.Checked;
+
+dtPickerRujuk.DateTime := Now;
+
+rg1.ItemIndex := 0;
+atur_halaman(0);
+cbbTacc.ItemIndex := 0;
+cbbTaccChange(self);
+end;
+
+procedure TForm1_faskesRujukan.btn10Click(Sender: TObject);
+begin
+get_spesialis;
+end;
+
+procedure TForm1_faskesRujukan.btn12Click(Sender: TObject);
+var vsarana, vsubspesialis : string;
+begin
+  vsarana := '0';
+  if chkSarana.Checked then vsarana := dataRujukan.fdQ1Sarana.FieldByName('kd_sarana').AsString;
+
+  vsubspesialis := dataRujukan.fdQ1SubSpesialis.FieldByName('kd_sub_spesialis').AsString;
+
+  get_faskes_sub(vsubspesialis, vsarana, dtPickerRujuk.Date);
+
+end;
+
+procedure TForm1_faskesRujukan.btn14Click(Sender: TObject);
+begin
+  if chk1Bpjs.Checked then tampilkan_faskes_khusus_jkn else
+  tampilkan_faskes_khusus_bayar;
+end;
+
+procedure TForm1_faskesRujukan.btn1Click(Sender: TObject);
+var
+    br0 : brKunjungan;
+begin
+    br0 := brKunjungan.Create;
+    try
+      br0.getRujukan(editIdxstr.Text);
+      mmoAkhir.Lines.Assign(br0.aScript);
+    finally
+      br0.Free;
+    end;
+end;
+
+procedure TForm1_faskesRujukan.btn1DiagnosaClick(Sender: TObject);
+begin
+//staticText1.Caption := 'A09 - Diarrhoea and gastroenteritis of presumed infectious origin';
+Form1_ICDXCari.ShowModal;
+if Form1_ICDXCari.ModalResult = mrOK then
+begin
+staticText1.Caption := Form1_ICDXCari.lblICDX.Caption + ' - ' + Form1_ICDXCari.lblPenyakit.Caption;
+//'A09 - Diarrhoea and gastroenteritis of presumed infectious origin';
+end;
+end;
+
+procedure TForm1_faskesRujukan.btn2Click(Sender: TObject);
+begin
+Close;
+end;
+
+procedure TForm1_faskesRujukan.btn2DiagnosaClick(Sender: TObject);
+begin
+//staticText1.Caption := 'A09 - Diarrhoea and gastroenteritis of presumed infectious origin';
+Form1_ICDXCari.ShowModal;
+if Form1_ICDXCari.ModalResult = mrOK then
+begin
+staticText2.Caption := Form1_ICDXCari.lblICDX.Caption + ' - ' + Form1_ICDXCari.lblPenyakit.Caption;
+//'A09 - Diarrhoea and gastroenteritis of presumed infectious origin';
+end;
+
+end;
+
+procedure TForm1_faskesRujukan.btn2Khusus2Click(Sender: TObject);
+begin
+get_khusus;
+end;
+
+procedure TForm1_faskesRujukan.btn2Khusus2SubClick(Sender: TObject);
+begin
+with dataRujukan do
+begin
+  fdQ1KhususSub.Close;
+  fdQ1KhususSub.Open();
+end;
+end;
+
+procedure TForm1_faskesRujukan.btn7Click(Sender: TObject);
+var
+  v1 : Variant;
+  o1 : Variant;
+  akhirStr : string;
+begin
+if ( grpTacc.Visible and(cbbTacc.ItemIndex = 0))  then
+begin
+  ShowMessage('Alasan TAcc Belum Diisi. Silahkan Diisi!!');
+  Exit;
+end;
+pb1.Position := 1;
+pb1.Show;
+pb1.Caption := 'Mengumpulkan data..';
+pb1.Position  := pb1.Position + 1;
+
+case rg1.ItemIndex of
+0 : update_data_sub(editIdxstr.Text);
+1 : update_data_khusus(editIdxstr.Text);
+end;
+
+if chk1Bpjs.Checked then
+begin
+
+case rg1.ItemIndex of
+0 : buat_sub_json;
+1 : buat_khusus_json;
+end;
+
+v1 := _Json(mmoDummi.Lines.Text);
+o1 := _Json(mmoHasil.Lines.Text);
+//o1.tglEstRujuk := tglStr;
+v1.rujukLanjut := o1;
+v1.kdStatusPulang := '4';
+
+
+// Tacc
+akhirStr := buat_tacc(v1);
+mmoAkhir.Lines.Text := akhirStr;
+
+if kirim_bpjs then
+begin
+  if ambil_dari_bpjs then
+  begin
+    with dataRujukan do
+    begin
+      fdQ1Cetak.Close;
+      fdQ1Cetak.ParamByName('idxstr').AsString := editIdxstr.Text;
+      fdQ1Cetak.Open();
+    end;
+    frxReport1.ShowReport();
+  end;
+end;
+end else
+begin
+  // non BPJS
+    with dataRujukan do
+    begin
+      fdQ1CetakNon.Close;
+      fdQ1CetakNon.ParamByName('idxstr').AsString := editIdxstr.Text;
+      fdQ1CetakNon.Open();
+    end;
+    frxReport2.ShowReport();
+
+end;
+pb1.Hide;
+end;
+
+procedure TForm1_faskesRujukan.btn9Click(Sender: TObject);
+var vspesialis : string;
+begin
+  vspesialis := dataRujukan.fdQ1Spesialis.FieldByName('kd_spesialis').AsString;
+  get_sub_spesialis(vspesialis);
+end;
+
+procedure TForm1_faskesRujukan.buat_khusus1_json;
+var
+  v1 : Variant;
+  tglStr : string;
+begin
+  DateTimeToString(tglStr, 'DD-MM-YYYY', dtPickerRujuk.Date);
+  v1 := _Json(mmoKhusus1.Lines.Text);
+  v1.tglEstRujuk := tglStr;
+  v1.kdppk := dataRujukan.fdQ1FaskesKhusus.FieldByName('kdppk').AsString;
+  v1.khusus.kdKhusus := dataRujukan.fdQ1Khusus.FieldByName('kd_khusus').AsString;
+
+  if Length(editCatatan.Text) > 0 then v1.khusus.catatan := editCatatan.Text;
+
+
+  mmoHasil.Lines.Text := VariantSaveJSON(v1);
+
+end;
+
+procedure TForm1_faskesRujukan.buat_khusus2_json;
+var
+  v1 : Variant;
+  tglStr : string;
+begin
+  DateTimeToString(tglStr, 'DD-MM-YYYY', dtPickerRujuk.Date);
+
+  v1 := _Json(mmoKhusus1.Lines.Text);
+  v1.kdppk := dataRujukan.fdQ1FaskesKhusus.FieldByName('kdppk').AsString;
+  v1.tglEstRujuk := tglStr;
+  v1.khusus.kdKhusus := dataRujukan.fdQ1Khusus.FieldByName('kd_khusus').AsString;
+  v1.khusus.kdSubSpesialis := dataRujukan.fdQ1KhususSub.FieldByName('kd_sub_spesialis').AsString;
+
+  if Length(editCatatan.Text) > 0 then v1.khusus.catatan := editCatatan.Text;
+
+
+  mmoHasil.Lines.Text := VariantSaveJSON(v1);
+
+end;
+
+procedure TForm1_faskesRujukan.buat_khusus_json;
+begin
+if grp1MKhusus2.Visible then buat_khusus2_json else buat_khusus1_json;
+
+end;
+
+procedure TForm1_faskesRujukan.buat_sub_json;
+var
+  v1 : Variant;
+  tglStr : string;
+begin
+  DateTimeToString(tglStr, 'DD-MM-YYYY', dtPickerRujuk.Date);
+
+  v1 := _Json(mmoSub.Lines.Text);
+  v1.kdppk := dataRujukan.fdQ1FaskesSub.FieldByName('kdppk').AsString;
+  v1.tglEstRujuk := tglStr;
+  v1.subSpesialis.kdSubSpesialis1 := dataRujukan.fdQ1SubSpesialis.FieldByName('kd_sub_spesialis').AsString;
+
+  if chkSarana.Checked then v1.subSpesialis.kdSarana := dataRujukan.fdQ1Sarana.FieldByName('kd_sarana').AsString;
+
+
+  mmoHasil.Lines.Text := VariantSaveJSON(v1);
+
+end;
+
+function TForm1_faskesRujukan.buat_tacc(v0 : Variant): string;
+var v1 : Variant;
+    alasanStr : string;
+begin
+   v1 := v0;
+   _Unique(v1);
+
+if (grpTacc.Visible and (cbbTacc.ItemIndex > 0)) then
+begin
+   v1.kdTacc := cbbTacc.ItemIndex;
+   case cbbTacc.ItemIndex of
+   1 : alasanStr := cbbTime.Items[cbbTime.ItemIndex];
+   2 : alasanStr := cbbAge.Items[cbbAge.ItemIndex];
+   3 : alasanStr := staticText1.Caption;
+   4 : alasanStr := staticText2.Caption;
+   end;
+
+   v1.alasanTacc := alasanStr;
+end;
+
+Result := VariantSaveJSON(v1);
+
+end;
+
+procedure TForm1_faskesRujukan.buka_faskes_khusus_bayar;
+var
+  sql0 , sql1 : string;
+  vkhusus, vsub, tglStr : string;
+begin
+  DateTimeToString(tglStr, 'YYYY-MM-DD', date);
+  sql0 := 'select * from jkn.faskes_khusus_utk_bayar_view where kd_khusus = %s and kd_sub_spesialis = %s and tanggal = %s order by upper(kelas) desc, distance, upper(nmppk);';
+
+ with dataRujukan do
+ begin
+   if grp1MKhusus2.Visible then
+        vsub := fdQ1KhususSub.FieldByName('kd_sub_spesialis').AsString else vsub := '0';
+
+   vkhusus := fdQ1Khusus.FieldByName('kd_khusus').AsString;
+   sql1 := Format(sql0, [QuotedStr(vkhusus), QuotedStr(vsub), QuotedStr(tglStr)]);
+
+   fdQ1FaskesKhusus.SQL.Clear;
+   fdQ1FaskesKhusus.SQL.Add(sql1);
+   fdQ1FaskesKhusus.Open();
+
+ end;
+
+end;
+
+procedure TForm1_faskesRujukan.buka_faskes_khusus_jkn;
+var
+  sql0 , sql1 : string;
+  vkhusus, vsub, tglStr : string;
+begin
+  DateTimeToString(tglStr, 'YYYY-MM-DD', dtPickerRujuk.Date);
+  sql0 := 'select * from jkn.faskes where kd_khusus = %s and kd_sub_spesialis = %s and tanggal = %s order by upper(kelas) desc, distance, upper(nmppk);';
+
+ with dataRujukan do
+ begin
+   if grp1MKhusus2.Visible then
+        vsub := fdQ1KhususSub.FieldByName('kd_sub_spesialis').AsString else vsub := '0';
+
+   vkhusus := fdQ1Khusus.FieldByName('kd_khusus').AsString;
+   sql1 := Format(sql0, [QuotedStr(vkhusus), QuotedStr(vsub), QuotedStr(tglStr)]);
+
+   fdQ1FaskesKhusus.SQL.Clear;
+   fdQ1FaskesKhusus.SQL.Add(sql1);
+   fdQ1FaskesKhusus.Open();
+
+ end;
+
+end;
+
+procedure TForm1_faskesRujukan.cbbTaccChange(Sender: TObject);
+begin
+atur_halaman_tacc(cbbTacc.ItemIndex);
+end;
+
+procedure TForm1_faskesRujukan.chkSaranaClick(Sender: TObject);
+var
+  brFkl : brFktl;
+
+begin
+if chkSarana.Checked then
+begin
+  brFkl := brFktl.Create;
+  try
+  if brFkl.getSarana then
+  begin
+    with dataRujukan do
+    begin
+    fdQ1Sarana.Close;
+    fdQ1Sarana.Open();
+    end;
+  end;
+  finally
+    brFkl.Free;
+  end;
+
+end else
+begin
+  dataRujukan.fdQ1Sarana.Close;
+  //fdQ1Sarana.Open();
+end;
+end;
+
+procedure TForm1_faskesRujukan.dbedit1KhususChange(Sender: TObject);
+begin
+if dataRujukan.fdQ1Khusus.Active then
+begin
+  grp1MKhusus2.Visible := dataRujukan.fdQ1Khusus.FieldByName('nampak').AsBoolean;
+end;
+
+end;
+
+procedure TForm1_faskesRujukan.dtPickerRujukChange(Sender: TObject);
+begin
+with dataRujukan do
+begin
+  fdQ1FaskesSub.Close;
+  fdQ1FaskesKhusus.Close;
+end;
+end;
+
+procedure TForm1_faskesRujukan.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+gridFaskesKhusus.SaveColumnsLayoutIni(form111.MyIni, name, true);
+gridFaskesSub.SaveColumnsLayoutIni(form111.MyIni, name, False);
+
+end;
+
+procedure TForm1_faskesRujukan.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_faskesRujukan.get_khusus;
+var
+  brFkl : brFktl;
+begin
+  //vspesialis := dataRujukan.fdQ1Spesialis.FieldByName('kd_spesialis').AsString;
+  brFkl := brFktl.Create;
+  try
+  if brFkl.getkhusus1 then
+  begin
+    with dataRujukan do
+    begin
+    fdQ1Khusus.Close;
+    fdQ1Khusus.Open();
+    end;
+  end;
+  finally
+    brFkl.Free;
+  end;
+end;
+
+
+procedure TForm1_faskesRujukan.get_faskes_khusus_bayar(vkhusus, vsub: string;
+  tanggal: TDate);
+begin
+buka_faskes_khusus_bayar;
+end;
+
+procedure TForm1_faskesRujukan.get_faskes_khusus_jkn(vkhusus, vsub: string; tanggal : TDate);
+var
+  brFkl : brFktl;
+  //vkhusus, vsub : string;
+  hasil : Boolean;
+
+begin
+//  vkhusus := dataRujukan.fdQ1Khusus2.FieldByName('kd_khusus').AsString;
+//  vsub := dataRujukan.fdQ1Khusus2Sub.FieldByName('kd_sub_spesialis').AsString;
+  brFkl := brFktl.Create;
+  try
+  if vsub = '0' then
+  hasil := brFkl.getFaskesKhusus1(vkhusus, editNoKartu.Text, dtPickerRujuk.Date) else
+  hasil := brFkl.getFaskesKhusus2(vkhusus, vsub, editNoKartu.Text, dtPickerRujuk.Date);
+  if hasil then buka_faskes_khusus_jkn else ShowMessage('Gagal Ambil Data');
+
+  finally
+    brFkl.Free;
+  end;
+end;
+
+procedure TForm1_faskesRujukan.get_faskes_sub(vsub, vsarana: string; tanggal : TDate);
+var
+  brFkl : brFktl;
+begin
+  //vsarana := fdQ1Spesialis.FieldByName('kd_spesialis').AsString;
+  brFkl := brFktl.Create;
+  try
+  if brFkl.getFaskesSub(vsub, vsarana, dtPickerRujuk.Date) then
+  begin
+    with dataRujukan do
+    begin
+    fdQ1FaskesSub.Close;
+    fdQ1FaskesSub.ParamByName('kd_sub_spesialis').AsString := vsub;
+    fdQ1FaskesSub.ParamByName('kd_sarana').AsString := vsarana;
+    fdQ1FaskesSub.ParamByName('tanggal').AsDate := dtPickerRujuk.date;
+    fdQ1FaskesSub.Open();
+    end;
+  end;
+  finally
+    brFkl.Free;
+  end;
+end;
+
+procedure TForm1_faskesRujukan.get_spesialis;
+var
+  brFkl : brFktl;
+begin
+  brFkl := brFktl.Create;
+  try
+  if brFkl.getSpesialis then
+  begin
+    with dataRujukan do
+    begin
+    fdQ1Spesialis.Close;
+    fdQ1Spesialis.Open();
+    end;
+  end;
+  finally
+    brFkl.Free;
+  end;
+end;
+
+procedure TForm1_faskesRujukan.get_sub_spesialis(spesialis: string);
+var
+  brFkl : brFktl;
+begin
+  //vspesialis := dataRujukan.fdQ1Spesialis.FieldByName('kd_spesialis').AsString;
+  brFkl := brFktl.Create;
+  try
+  if brFkl.getSubSpesialis(spesialis) then
+  begin
+    with dataRujukan do
+    begin
+    fdQ1SubSpesialis.Close;
+    fdQ1SubSpesialis.Open();
+    end;
+  end;
+  finally
+    brFkl.Free;
+  end;
+end;
+
+function TForm1_faskesRujukan.kirim_bpjs : Boolean;
+var
+    br0 : brKunjungan;
+begin
+   Result := False;
+   pb1.Caption := 'Mengirim data ke BPJS...';
+   br0 := brKunjungan.Create;
+   try
+     Result := br0.postKunjunganX(editIdxstr.Text, mmoAkhir.Lines.Text);
+     if Result then
+     begin
+       pb1.Caption := 'BPJS Ok!!';
+     end else  pb1.Caption := 'BPJS Gagal!!!';
+   finally
+    br0.Free;
+   end;
+   pb1.Position  := pb1.Position + 1;
+
+end;
+
+procedure TForm1_faskesRujukan.pb1Progress(Sender: TObject;
+  var AContinue: Boolean);
+begin
+Application.ProcessMessages;
+end;
+
+procedure TForm1_faskesRujukan.rg1Click(Sender: TObject);
+begin
+dataRujukan.con1.Connected := False;
+atur_halaman(rg1.ItemIndex);
+end;
+
+procedure TForm1_faskesRujukan.set_tacc;
+var
+  alasanStr : string;
+begin
+kd_tacc := 0;
+nm_tacc := 'Tanpa TACC';
+alasan_tacc := 'null';
+
+if (grpTacc.Visible and (cbbTacc.ItemIndex > 0)) then
+begin
+  kd_tacc := cbbTacc.ItemIndex;
+  nm_tacc := cbbTacc.Items[cbbTacc.ItemIndex];
+   case cbbTacc.ItemIndex of
+   1 : alasanStr := cbbTime.Items[cbbTime.ItemIndex];
+   2 : alasanStr := cbbAge.Items[cbbAge.ItemIndex];
+   3 : alasanStr := staticText1.Caption;
+   4 : alasanStr := staticText2.Caption;
+   end;
+   alasan_tacc := QuotedStr(alasanStr);
+end;
+end;
+
+procedure TForm1_faskesRujukan.tampilkan_faskes_khusus_bayar;
+var
+  vkhusus, vsub : string;
+begin
+   if grp1MKhusus2.Visible then
+        vsub := dataRujukan.fdQ1KhususSub.FieldByName('kd_sub_spesialis').AsString else vsub := '0';
+
+   vkhusus := dataRujukan.fdQ1Khusus.FieldByName('kd_khusus').AsString;
+
+   //ShowMessage(vkhusus);
+
+   get_faskes_khusus_bayar(vkhusus, vsub, dtPickerRujuk.date);
+end;
+
+procedure TForm1_faskesRujukan.tampilkan_faskes_khusus_jkn;
+var
+  vkhusus, vsub : string;
+begin
+   if grp1MKhusus2.Visible then
+        vsub := dataRujukan.fdQ1KhususSub.FieldByName('kd_sub_spesialis').AsString else vsub := '0';
+
+   vkhusus := dataRujukan.fdQ1Khusus.FieldByName('kd_khusus').AsString;
+
+   //ShowMessage(vkhusus);
+
+   get_faskes_khusus_jkn(vkhusus, vsub, dtPickerRujuk.date);
+end;
+
+procedure TForm1_faskesRujukan.update_data_khusus(idxstr: string);
+var
+  sql0, sql1 : string;
+  provider, khusus, catatan, tglRujuk, subspesialis : string;
+begin
+   set_tacc;
+
+  subspesialis := 'null';
+  catatan := '-';
+  if Length(editCatatan.Text) > 0 then catatan := editCatatan.Text;
+
+  DateTimeToString(tglRujuk, 'YYYY-MM-DD', dtPickerRujuk.Date);
+  with dataRujukan do
+  begin
+     provider := fdQ1FaskesKhusus.FieldByName('nmppk').AsString;
+     khusus := fdQ1Khusus.FieldByName('nm_khusus').AsString;
+
+     if grp1MKhusus2.Visible then subspesialis := QuotedStr(fdQ1KhususSub.FieldByName('kd_sub_spesialis').AsString);
+//     if chkSarana.Checked then sarana := QuotedStr(fdQ1Sarana.FieldByName('kd_sarana').AsString);
+
+
+  end;
+  sql0 := 'update simpus.pulang set pulang_sebab = ''Rujuk Lanjut'', provider_rujuk = %s, jenis = 1, ' +
+          'subspesialis = %s, sarana = null, khusus = %s, catatan = %s, tanggal_rujuk = %s, kd_tacc = %s, alasan_tacc = %s, nm_tacc = %s  ' +
+          'where idxstr = %s;';
+
+  sql1 := Format(sql0, [
+              QuotedStr(provider),
+              subspesialis,
+              QuotedStr(khusus),
+              QuotedStr(catatan),
+              QuotedStr(tglRujuk),
+              intTostr(kd_tacc),
+              alasan_tacc,
+              QuotedStr(nm_tacc),
+              QuotedStr(idxstr)
+              ]);
+
+  dataRujukan.fdCmd1.Execute(sql1);
+end;
+
+
+procedure TForm1_faskesRujukan.update_data_sub(idxstr: string);
+var
+  sql0, sql1 : string;
+  provider, subspesialis, sarana, tglRujuk : string;
+begin
+   set_tacc;
+
+  sarana := 'null';
+  DateTimeToString(tglRujuk, 'YYYY-MM-DD', dtPickerRujuk.Date);
+  with dataRujukan do
+  begin
+     //fdCmd1.SQLText := '';
+     provider := fdQ1FaskesSub.FieldByName('nmppk').AsString;
+     subspesialis := fdQ1SubSpesialis.FieldByName('nm_sub_spesialis').AsString;
+     if chkSarana.Checked then sarana := QuotedStr(fdQ1Sarana.FieldByName('nm_sarana').AsString);
+
+
+  end;
+  sql0 := 'update simpus.pulang set pulang_sebab = ''Rujuk Lanjut'', provider_rujuk = %s, jenis = 0, khusus = null, ' +
+          'catatan = ''-'', subspesialis = %s, sarana = %s, tanggal_rujuk = %s, kd_tacc = %s, alasan_tacc = %s, nm_tacc = %s  ' +
+          'where idxstr = %s;';
+
+  sql1 := Format(sql0, [
+              QuotedStr(provider),
+              QuotedStr(subspesialis),
+              sarana,
+              QuotedStr(tglRujuk),
+              intToStr(kd_tacc),
+              alasan_tacc,
+              QuotedStr(nm_tacc),
+              QuotedStr(idxstr)
+              ]);
+
+  dataRujukan.fdCmd1.Execute(sql1);
+end;
+
+
+end.

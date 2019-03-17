@@ -1,0 +1,179 @@
+unit srvDiagnosaU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  srvDiagnosa = class(srvCommon)
+    private
+    FPenyakit : string;
+    function ambilJsonPost(id_diag : string) : string;
+    function ambilJsonPenyakit(icdx : string) : string;
+    public
+    aScript : TStringList;
+
+    property penyakit : string read FPenyakit write FPenyakit;
+
+    function postDiagnosa(id_diag : string): Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkanpostDiagnosa;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot, synautil;
+{ srvDiagnosa }
+
+function srvDiagnosa.ambilJsonPenyakit(icdx: string): string;
+var sql0, sql1, tanggalDiagnosaStr : string;
+    V1 : Variant;
+begin
+parameter_bridging('icdx', 'post');
+
+V1 := _Json(FormatJson);
+
+Result := '';
+sql0 := 'select * from simpus.rekam_medis where id_diag = %s limit 1';
+sql1 := Format(sql0, [QuotedStr(id_diag)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Active := true;
+
+if not fdQuery.IsEmpty then
+begin
+
+  DateTimeToString(tanggalDiagnosaStr, 'yyyy-MM-dd''T''hh:mm:ss', fdQuery.FieldByName('tanggal_diagnosa').AsDateTime);
+
+//ShowMessage(VariantSaveJSON(V1));
+  V1.idDiag := id_diag;
+  V1.idxstr := fdQuery.FieldByName('idxstr').AsString;
+  V1.idx := fdQuery.FieldByName('idx').AsInteger;
+  V1.tanggalDiagnosa := tanggalDiagnosaStr;
+  V1.dokter := fdQuery.FieldByName('dokter').AsString;
+  V1.penyakit := fdQuery.FieldByName('penyakit').AsString;
+  V1.anamnese := fdQuery.FieldByName('anamnese').AsString;
+  V1.tindakan := fdQuery.FieldByName('tindakan').AsString;
+  V1.adlBaru := fdQuery.FieldByName('adl_baru').AsInteger;
+
+  FPenyakit := fdQuery.FieldByName('penyakit').AsString;
+  fdQuery.Close;
+   Result := VariantSaveJSON(V1);
+end;
+end;
+
+function srvDiagnosa.ambilJsonPost(id_diag: string): string;
+var sql0, sql1, tanggalDiagnosaStr : string;
+    V1 : Variant;
+begin
+parameter_bridging('diagnosa', 'post');
+
+V1 := _Json(FormatJson);
+
+Result := '';
+sql0 := 'select * from simpus.rekam_medis where id_diag = %s limit 1';
+sql1 := Format(sql0, [QuotedStr(id_diag)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Active := true;
+
+if not fdQuery.IsEmpty then
+begin
+
+  DateTimeToString(tanggalDiagnosaStr, 'yyyy-MM-dd''T''hh:mm:ss', fdQuery.FieldByName('tanggal_diagnosa').AsDateTime);
+
+//ShowMessage(VariantSaveJSON(V1));
+  V1.idDiag := id_diag;
+  V1.idxstr := fdQuery.FieldByName('idxstr').AsString;
+  V1.idx := fdQuery.FieldByName('idx').AsInteger;
+  V1.tanggalDiagnosa := tanggalDiagnosaStr;
+  V1.dokter := fdQuery.FieldByName('dokter').AsString;
+  V1.penyakit := fdQuery.FieldByName('penyakit').AsString;
+  V1.anamnese := fdQuery.FieldByName('anamnese').AsString;
+  V1.tindakan := fdQuery.FieldByName('tindakan').AsString;
+  V1.adlBaru := fdQuery.FieldByName('adl_baru').AsInteger;
+
+  FPenyakit := fdQuery.FieldByName('penyakit').AsString;
+  fdQuery.Close;
+   Result := VariantSaveJSON(V1);
+end;
+end;
+
+constructor srvDiagnosa.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvDiagnosa.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvDiagnosa.postDiagnosa(id_diag : string): Boolean;
+var
+    mStream : TMemoryStream;
+    js : string;
+
+begin
+mStream := TMemoryStream.Create;
+Result := False;
+
+js := ambilJsonPost(id_diag);
+WriteStrToStream(mStream, js);
+
+//Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+Result:= httpPost(Uri, mStream);
+mStream.Free;
+//if Result then masukkanpostDiagnosa;
+end;
+
+
+
+procedure srvDiagnosa.masukkanpostDiagnosa;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlx0, sqlx1 : string;
+    sqlDel0, sql0, sql1 : string;
+    dId, dPuskesmas, dJml, dTgl : string;
+    poliSakit : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sqlDel0 := 'delete from simpus.tt where id = 0;';
+//   sql0 := 'insert into simpus.tt(id, puskesmas, jml, tanggal_ubah) values(%s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   tSl.Add(sqlDel0);
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+   sql1 := jsonToSql('simpus.tt', dataResp);
+   sql1 := ReplaceStr(sql1, 'tanggalUbah', 'tanggal_ubah');
+   tSl.Add(sql1);
+// ShowMessage(tsResponse.Text);
+
+ {
+   for I := 0 to dataResp._count - 1 do
+     begin
+       dBiaya := dataResp.Value(i).biaya;
+       dIdRpt := dataResp.Value(i).idRpt;
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+
+       sql1 := Format(sql0, [QuotedStr(dBiaya), QuotedStr(dIdRpt)]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+  }
+   finally
+     aScript.Assign(tSl);
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+
+end.

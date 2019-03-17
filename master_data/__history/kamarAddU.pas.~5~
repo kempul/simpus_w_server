@@ -1,0 +1,42 @@
+unit kamarAddU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Mask, JvExMask, JvToolEdit,
+  JvBaseEdits, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls;
+
+type
+  TForm1_kamarAdd = class(TForm)
+    labelNama: TLabel;
+    labelJml: TLabel;
+    editNama: TEdit;
+    editJml: TJvCalcEdit;
+    panel2: TPanel;
+    btnOk: TBitBtn;
+    btnCancel: TBitBtn;
+  private
+    { Private declarations }
+    procedure awal;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_kamarAdd: TForm1_kamarAdd;
+
+implementation
+
+{$R *.dfm}
+
+{ TForm1_kamarAdd }
+
+procedure TForm1_kamarAdd.awal;
+begin
+editNama.Clear;
+editJml.AsInteger := 0;
+editNama.SetFocus;
+end;
+
+end.

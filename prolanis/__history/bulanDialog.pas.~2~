@@ -1,0 +1,30 @@
+unit bulanDialog;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, JvExStdCtrls, JvCombobox,
+  Vcl.Mask, JvExMask, JvSpin;
+
+type
+  TForm1_bulanDialog = class(TForm)
+    editTahun: TJvSpinEdit;
+    cbbBulan: TJvComboBox;
+    btn1: TButton;
+    lbl1: TLabel;
+    lbl2: TLabel;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_bulanDialog: TForm1_bulanDialog;
+
+implementation
+
+{$R *.dfm}
+
+end.

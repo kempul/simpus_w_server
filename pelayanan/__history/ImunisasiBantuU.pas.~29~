@@ -1,0 +1,186 @@
+unit ImunisasiBantuU;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, JvExStdCtrls, JvCombobox, DBGridEhGrouping,
+  ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, GridsEh, DBAxisGridsEh, DBGridEh,
+  ExtCtrls, DBCtrls, JvDBControls, EhLibVCL, Vcl.ComCtrls, JvExComCtrls,
+  JvDateTimePicker;
+
+type
+  TForm1_ImunisasiBantu = class(TForm)
+    panel2: TPanel;
+    btn1: TBitBtn;
+    grpImunisasi: TGroupBox;
+    dbnav1: TJvDBNavigator;
+    grid1: TDBGridEh;
+    panel3: TPanel;
+    label2: TLabel;
+    labelImunisasi: TLabel;
+    dtp1: TJvDateTimePicker;
+    editImunisasi: TEdit;
+    btnCari: TSpeedButton;
+    panel4: TPanel;
+    labelIdxStr: TLabel;
+    labelKode: TLabel;
+    btnSimpan: TButton;
+    procedure FormShow(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnCariClick(Sender: TObject);
+    procedure btnSimpanClick(Sender: TObject);
+  private
+    { Private declarations }
+    boleh_buka : Boolean;
+    procedure awal;
+    procedure isi_combo(aCombo : TComboBox; aQuery, aField : string);
+    procedure buka_data;
+    procedure simpan_imunisasi;
+    procedure kirim_imunisasi;
+    function ambilImunisasiTerakhir : string;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_ImunisasiBantu: TForm1_ImunisasiBantu;
+
+implementation
+
+uses dmpelayanan, aau111, imunisasiCariU; //, SrvParallelU;
+
+{$R *.dfm}
+
+{ TForm1_ponedBantu }
+
+function TForm1_ImunisasiBantu.ambilImunisasiTerakhir : string;
+begin
+with dataPelayanan do
+begin
+  fdQueryImunisasiTerakhir.Close;
+  fdQueryImunisasiTerakhir.Prepare;
+  fdQueryImunisasiTerakhir.ParamByName('idxstr').AsString := labelIdxStr.Caption;
+  fdQueryImunisasiTerakhir.Active := True;
+  Result := fdQueryImunisasiTerakhir.FieldByName('id').AsString;
+  fdQueryImunisasiTerakhir.Close;
+end;
+end;
+
+procedure TForm1_ImunisasiBantu.awal;
+begin
+boleh_buka := False;
+grid1.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+dtp1.DateTime := Now;
+buka_data;
+end;
+
+procedure TForm1_ImunisasiBantu.btn1Click(Sender: TObject);
+begin
+{
+if dataPelayanan.uqImunisasi_pv.Modified then dataPelayanan.uqImunisasi_pv.Post;
+
+gridEh1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+}
+end;
+
+procedure TForm1_ImunisasiBantu.btnCariClick(Sender: TObject);
+begin
+Form1_ImunisasiCari.ShowModal;
+if Form1_ImunisasiCari.ModalResult = mrOk then
+begin
+   labelKode.Caption := Form1_ImunisasiCari.labelKode.Caption;
+   editImunisasi.Text := Form1_ImunisasiCari.labelText.Caption;
+end;
+end;
+
+procedure TForm1_ImunisasiBantu.btnSimpanClick(Sender: TObject);
+begin
+  try
+  simpan_imunisasi;
+  finally
+    buka_data;
+    kirim_imunisasi;
+  end;
+end;
+
+procedure TForm1_ImunisasiBantu.buka_data;
+begin
+with dataPelayanan do
+begin
+  fdQueryImunisasi.Close;
+  fdQueryImunisasi.Prepare;
+  fdQueryImunisasi.ParamByName('idxstr').AsString := labelIdxStr.Caption;
+  fdQueryImunisasi.Active := True;
+
+end;
+boleh_buka := True;
+end;
+
+procedure TForm1_ImunisasiBantu.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+grid1.SaveColumnsLayoutIni(Form111.MyIni, name, True);
+dataPelayanan.fdQueryImunisasi.Close;
+end;
+
+procedure TForm1_ImunisasiBantu.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_ImunisasiBantu.isi_combo(aCombo: TComboBox; aQuery,
+  aField: string);
+begin
+aCombo.Clear;
+with dataPelayanan do
+begin
+  fdQueryBuka.Close;
+  fdQueryBuka.SQL.Clear;
+  fdQueryBuka.SQL.Add(aQuery);
+  fdQueryBuka.Open;
+
+  while not fdQueryBuka.Eof do
+  begin
+    aCombo.Items.Add(fdQueryBuka.FieldByName(aField).AsString);
+    fdQueryBuka.Next;
+  end;
+  fdQueryBuka.Close;
+  aCombo.ItemIndex := 0;
+end;
+
+
+end;
+
+procedure TForm1_ImunisasiBantu.kirim_imunisasi;
+var srv : SrvParallel;
+    id : string;
+begin
+id := ambilImunisasiTerakhir;
+srv := SrvParallel.Create;
+try
+  srv.imunisasiPost(id);
+finally
+  srv.Free;
+end;
+end;
+
+
+procedure TForm1_ImunisasiBantu.simpan_imunisasi;
+var sql0, sql1, strTgl : string;
+begin
+  DateTimeToString(strTgl, 'yyyy-MM-dd', dtp1.DateTime);
+  sql0 := 'insert into simpus.imunisasi(idxstr, imunisasi, tanggal) values(%s, %s, %s);';
+  with dataPelayanan do
+  begin
+     sql1 := Format(sql0,[
+                QuotedStr(labelIdxStr.Caption),
+                labelKode.Caption,
+                QuotedStr(strTgl)
+                ]);
+    fdCmd1.Execute(sql1);
+  end;
+end;
+
+end.

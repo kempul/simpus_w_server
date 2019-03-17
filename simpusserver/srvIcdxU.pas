@@ -1,0 +1,118 @@
+unit srvIcdxU;
+
+interface
+   uses Dialogs, Classes, srvCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  srvIcdx = class(srvCommon)
+    private
+    function ambilJsonPost(kode : string) : string;
+    public
+    aScript : TStringList;
+    function postIcdx(kode : string): Boolean;
+    constructor Create;
+    destructor destroy;
+    procedure masukkanpostIcdx(kode : string);
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons, mORMot, synautil;
+{ srvIcdx }
+
+function srvIcdx.ambilJsonPost(kode: string): string;
+var sql0, sql1, tglStr, tanggalMasukStr, tanggalPulangStr : string;
+    V1 : Variant;
+begin
+parameter_bridging('icdx', 'post');
+
+
+V1 := _Json(FormatJson);
+
+Result := '';
+sql0 := 'select * from jkn.m_diagnosis where kd_diag = %s limit 1';
+sql1 := Format(sql0, [QuotedStr(kode)]);
+fdQuery.Close;
+fdQuery.SQL.Clear;
+fdQuery.SQL.Add(sql1);
+fdQuery.Open();
+
+if fdQuery.IsEmpty then
+begin
+  fdQuery.Close;
+  Exit;
+end;
+
+//ShowMessage(VariantSaveJSON(V1));
+  V1.kdDiag := kode;
+  V1.nmDiag := fdQuery.FieldByName('nm_diag').AsString;
+  V1.nonSpesialis := fdQuery.FieldByName('non_spesialis').AsBoolean;
+
+  fdQuery.Close;
+   Result := VariantSaveJSON(V1);
+
+end;
+
+constructor srvIcdx.Create;
+begin
+  inherited Create;
+  aScript := TStringList.Create;
+end;
+
+destructor srvIcdx.destroy;
+begin
+aScript.Free;
+inherited;
+end;
+
+function srvIcdx.postIcdx(kode : string): Boolean;
+var
+    mStream : TMemoryStream;
+    js : string;
+
+begin
+Result := False;
+
+js := ambilJsonPost(kode);
+if Length(js) > 10 then
+begin
+mStream := TMemoryStream.Create;
+WriteStrToStream(mStream, js);
+
+//Uri := ReplaceStr(Uri, '{puskesmas}', puskesmas);
+Result:= httpPost(Uri, mStream);
+mStream.Free;
+if Result then masukkanpostIcdx(kode);
+end;
+FDConn.Close;
+end;
+
+
+
+procedure srvIcdx.masukkanpostIcdx;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, tglStr : string;
+begin
+//       ShowMessage('awal masukkan get');
+
+   sqlDel0 := 'update jkn.m_diagnosis set tanggal_server = %s where kd_diag = %s;';
+
+//   sql0 := 'insert into simpus.tt(id, puskesmas, jml, tanggal_ubah) values(%s, %s, %s, %s);';
+   tsL := TStringList.Create;
+   //tSl.Add(sqlDel0);
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+   tglStr := dataResp.tanggalServer;
+   sqlDel1 := Format(sqlDel0, [QuotedStr(tglStr), QuotedStr(kode)]);
+   tSl.Add(sqlDel1);
+   aScript.Assign(tSl);
+   jalankanScript(tSl);
+   finally
+     FreeAndNil(tSl);
+   end;
+end;
+
+end.

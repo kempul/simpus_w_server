@@ -1,0 +1,159 @@
+unit dokteru;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, DynVarsEh,
+  ComCtrls, JvExComCtrls, JvComCtrls, JvBaseDlg, JvProgressDialog, EhLibVCL,
+  brDokterU;
+
+type
+  TForm1_dokter = class(TForm)
+    panelUtama: TJvPanel;
+    JvPanel1: TJvPanel;
+    panelUtama1: TJvPanel;
+    nav1: TJvDBNavigator;
+    JvPanel2: TJvPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    JvLabel2: TJvLabel;
+    JvBevel1: TJvBevel;
+    panelMenu: TJvPanel;
+    btn_close: TJvTransparentButton;
+    btn_dokterAmbil: TJvTransparentButton;
+    btn_cetak: TJvTransparentButton;
+    btn_jaminan: TJvTransparentButton;
+    btn_pakandikandang: TJvTransparentButton;
+    JvFormStorage1: TJvFormStorage;
+    frxDBDataset1: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    grid1: TDBGridEh;
+    pageControl1: TJvPageControl;
+    tsHeader: TTabSheet;
+    tsResponse: TTabSheet;
+    tsOlah: TTabSheet;
+    memoHeader: TMemo;
+    memoResponse: TMemo;
+    memoOlah: TMemo;
+    pb1: TJvProgressDialog;
+    procedure btn_closeClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure nav1Click(Sender: TObject; Button: TNavigateBtn);
+    procedure btn_dokterAmbilClick(Sender: TObject);
+    procedure pb1Progress(Sender: TObject; var AContinue: Boolean);
+  private
+    { Private declarations }
+    procedure awal;
+    procedure buka_data;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_dokter: TForm1_dokter;
+
+implementation
+
+uses dmMaster, aau, aau111, uLkJSON, mybridge;
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+
+procedure TForm1_dokter.awal;
+begin
+
+grid1.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+//grid2.RestoreColumnsLayoutIni(Form111.MyIni, 'Beli', [crpColVisibleEh, crpColWidthsEh]);
+
+buka_data;
+end;
+
+procedure TForm1_dokter.btn_closeClick(Sender: TObject);
+begin
+dataMaster.FDConnection1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMessage('0');
+end;
+
+procedure TForm1_dokter.btn_dokterAmbilClick(Sender: TObject);
+var aBridge : BrDokter;
+begin
+  pb1.Max := 100;
+  pb1.Interval := 10;
+  pb1.Show;
+  Application.ProcessMessages;
+  try
+    aBridge := brDokter.create;
+    pb1.Position := pb1.Position + pb1.Interval;
+
+    if aBridge.getDokter('0', '100') then
+    begin
+    pb1.Position := pb1.Position + pb1.Interval;
+  //    eksekusi_script(memoOlah.Lines);
+    pb1.Position := pb1.Position + pb1.Interval;
+    end else ShowMessage('gagal');
+
+    memoHeader.Clear;
+    memoHeader.Lines.Add(aBridge.tsHeader.Text);
+    memoResponse.Clear;
+    memoResponse.Lines.Add(aBridge.tsResponse.Text);
+
+    buka_data;
+  finally
+    pb1.Position := pb1.Position + pb1.Interval;
+    ABridge.Free;
+    pb1.Position := pb1.Position + pb1.Interval;
+    pb1.Hide;
+    pb1.Position := pb1.Position + pb1.Interval;
+  end;
+end;
+
+procedure TForm1_dokter.buka_data;
+begin
+with dataMaster do
+begin
+  FDConnection1.Connected := false;
+  FDQueryDokter.Open;
+end;
+end;
+
+
+procedure TForm1_dokter.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+
+procedure TForm1_dokter.nav1Click(Sender: TObject; Button: TNavigateBtn);
+  var apv : string;
+begin
+
+if Button in [ nbInsert, nbEdit] then
+begin
+  grid1.Options := grid1.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+  apv := dataMaster.fdQueryDokter.FieldByName('nama').AsString;
+  grid1.Options := grid1.Options - [dgEditing] + [dgRowSelect];
+  if TDBNavigator(Sender).DataSource.DataSet.Modified then TDBNavigator(Sender).DataSource.DataSet.Post;
+  end;
+
+
+end;
+
+procedure TForm1_dokter.pb1Progress(Sender: TObject; var AContinue: Boolean);
+begin
+Application.ProcessMessages;
+//ShowMessage('ok');
+end;
+
+end.

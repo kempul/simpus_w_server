@@ -1,0 +1,354 @@
+object dataRI: TdataRI
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
+  Height = 746
+  Width = 749
+  object fdpgdriver1: TFDPhysPgDriverLink
+    Left = 152
+    Top = 16
+  end
+  object fdCmd1: TFDCommand
+    Connection = FDConnection1
+    Left = 220
+    Top = 16
+  end
+  object fdScript2: TFDScript
+    SQLScripts = <>
+    Connection = FDConnection1
+    Params = <>
+    Macros = <>
+    Left = 288
+    Top = 16
+  end
+  object fdQueryBuka: TFDQuery
+    Connection = FDConnection1
+    Left = 356
+    Top = 16
+  end
+  object fdQueryRI: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT '
+      '  simpus.pasien_kunjungan.*,'
+      '  capil.capil_nik.nama_lengkap,'
+      '  capil.capil_nik.mr,'
+      '  capil.capil_nik.kartu_bpjs,'
+      '  rawat_inap.kamar,'
+      'age(capil.capil_nik.tgl_lahir) as umur'
+      'FROM'
+      '  simpus.pasien_kunjungan'
+      
+        '  INNER JOIN capil.capil_nik ON (simpus.pasien_kunjungan.id_pasi' +
+        'en = capil.capil_nik.idxstr)'
+      
+        '  LEFT OUTER JOIN simpus.rawat_inap ON (simpus.pasien_kunjungan.' +
+        'idxstr = simpus.rawat_inap.idxstr)'
+      'WHERE'
+      
+        '  (simpus.pasien_kunjungan.instalasi = '#39'RAWAT INAP'#39' OR simpus.pa' +
+        'sien_kunjungan.instalasi = '#39'PONED'#39') AND'
+      
+        '  (simpus.pasien_kunjungan.sdh_pulang = 0 OR simpus.pasien_kunju' +
+        'ngan.tanggal_pulang::DATE = :tanggal)'
+      '  ')
+    Left = 424
+    Top = 16
+    ParamData = <
+      item
+        Name = 'TANGGAL'
+        DataType = ftDate
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsRI: TJvDataSource
+    DataSet = fdQueryRI
+    Left = 492
+    Top = 16
+  end
+  object fdQueryBed: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.kamar_ri where sisa >= 1')
+    Left = 560
+    Top = 16
+  end
+  object dsBed: TJvDataSource
+    DataSet = fdQueryBed
+    Left = 628
+    Top = 16
+  end
+  object fdQueryFisik: TFDQuery
+    BeforeDelete = fdQueryFisikBeforeDelete
+    MasterSource = dsRI
+    MasterFields = 'idxstr'
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.pemeriksaan_fisik where idxstr = :idxstr')
+    Left = 16
+    Top = 84
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsFisik: TJvDataSource
+    DataSet = fdQueryFisik
+    Left = 84
+    Top = 84
+  end
+  object fdQueryRm: TFDQuery
+    BeforeDelete = fdQueryRmBeforeDelete
+    MasterSource = dsRI
+    MasterFields = 'idxstr'
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from simpus.rekam_medis where idxstr = :idxstr')
+    Left = 152
+    Top = 84
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsRm: TJvDataSource
+    DataSet = fdQueryRm
+    Left = 220
+    Top = 84
+  end
+  object fdQueryIcdxCek: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select count(*) as jumlah, nm_diag, non_spesialis from jkn.m_dia' +
+        'gnosis where kd_diag = :kd_diag group by nm_diag, non_spesialis'
+      '')
+    Left = 288
+    Top = 84
+    ParamData = <
+      item
+        Name = 'KD_DIAG'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryDiagnosaTerakhir: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select id_diag from simpus.rekam_medis where idxstr = :idxstr an' +
+        'd '
+      
+        'idx = (select max(idx) from simpus.rekam_medis where idxstr = :i' +
+        'dxstr)')
+    Left = 356
+    Top = 84
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryCheckSpesialis: TFDQuery
+    MasterSource = dsRI
+    MasterFields = 'idxstr'
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT '
+      '  COUNT(jkn.m_diagnosis.kd_diag) AS jml'
+      'FROM'
+      '  simpus.rekam_medis'
+      
+        '  INNER JOIN jkn.m_diagnosis ON (simpus.rekam_medis.penyakit = j' +
+        'kn.m_diagnosis.kd_diag)'
+      'WHERE'
+      
+        '  jkn.m_diagnosis.non_spesialis = false and simpus.rekam_medis.i' +
+        'dxstr = :idxstr ')
+    Left = 424
+    Top = 84
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryRujukanMaster: TFDQuery
+    MasterSource = dsRI
+    MasterFields = 'idxstr'
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT * from simpus.rujukan_view'
+      'WHERE'
+      '  idxstr = :idxstr')
+    Left = 492
+    Top = 84
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsRujukanMaster: TJvDataSource
+    DataSet = fdQueryRujukanMaster
+    Left = 560
+    Top = 84
+  end
+  object fdQueryRujukanRm: TFDQuery
+    MasterSource = dsRI
+    MasterFields = 'idxstr'
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT '
+      '  simpus.rekam_medis.idxstr,'
+      '  simpus.rekam_medis.penyakit,'
+      '  simpus.rekam_medis.tindakan,'
+      '  jkn.m_diagnosis.nm_diag'
+      'FROM'
+      '  jkn.m_diagnosis'
+      
+        '  INNER JOIN simpus.rekam_medis ON (jkn.m_diagnosis.kd_diag = si' +
+        'mpus.rekam_medis.penyakit)'
+      'WHERE'
+      '  simpus.rekam_medis.idxstr = :idxstr'
+      'order by id_diag')
+    Left = 628
+    Top = 84
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsRujukanRm: TJvDataSource
+    DataSet = fdQueryRujukanRm
+    Left = 16
+    Top = 152
+  end
+  object fdQueryCariMr: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from capil.capil_nik where upper(mr) = upper(:mr)')
+    Left = 84
+    Top = 152
+    ParamData = <
+      item
+        Name = 'MR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryPesertaBpjs: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from jkn.peserta where no_kartu = :noKartu')
+    Left = 188
+    Top = 164
+    ParamData = <
+      item
+        Name = 'NOKARTU'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object FDConnection1: TFDConnection
+    LoginPrompt = False
+    Left = 336
+    Top = 176
+  end
+  object fdQ1Cetak: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT '
+      '  jkn.rujukan.*,'
+      '  jkn.rujukan.idxstr,'
+      '  simpus.pulang.provider_rujuk,'
+      'extract (year from age(jkn.rujukan."tglLahir")) as umur,'
+      
+        '  case when "nmTacc" = null then null else '#39'# Alasan Rujuk Diagn' +
+        'osa Non-Spesialistik :'#39' || '
+      '  "nmTacc" || '#39' '#39' || "alasanTacc" end as teks_tacc  '
+      'FROM'
+      '  jkn.rujukan'
+      
+        '  INNER JOIN simpus.pulang ON (jkn.rujukan.idxstr = simpus.pulan' +
+        'g.idxstr)'
+      ' where jkn.rujukan.idxstr = :idxstr')
+    Left = 336
+    Top = 336
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQ1CetakNon: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT '
+      '  capil.capil_nik.nama_lengkap,'
+      '  capil.capil_nik.tgl_lahir,'
+      '  capil.capil_nik.mr,'
+      '  simpus.pasien_kunjungan.idxstr,'
+      '  simpus.puskesmas.nama,'
+      '  simpus.diagnosa_bantu.penyakit_panjang,'
+      '  simpus.pulang.pulang_tanggal,'
+      '  simpus.pulang.provider_rujuk,'
+      '  case '
+      '  when simpus.pulang.jenis = 0 then simpus.pulang.subspesialis '
+      '  when simpus.pulang.jenis = 1 then simpus.pulang.khusus '
+      '  when simpus.pulang.jenis = 2 then simpus.pulang.subspesialis'
+      '  else simpus.pulang.poli_rujuk end as poli_rujuk, '
+      '  simpus.pulang.catatan,'
+      '  simpus.pulang.alasan_tacc,'
+      '  left(capil.capil_nik.jenis_kelamin, 1) as sex,'
+      '  simpus.diagnosa_bantu.dokter_panjang,'
+      '  simpus.diagnosa_bantu.tindakan,'
+      '  extract (year from age(capil.capil_nik.tgl_lahir)) as umur'
+      'FROM'
+      '  capil.capil_nik'
+      
+        '  INNER JOIN simpus.pasien_kunjungan ON (capil.capil_nik.idxstr ' +
+        '= simpus.pasien_kunjungan.id_pasien)'
+      
+        '  INNER JOIN simpus.puskesmas ON (simpus.pasien_kunjungan.puskes' +
+        'mas = simpus.puskesmas.kd_cabang)'
+      
+        '  INNER JOIN simpus.diagnosa_bantu ON (simpus.pasien_kunjungan.i' +
+        'dxstr = simpus.diagnosa_bantu.idxstr)'
+      
+        '  INNER JOIN simpus.pulang ON (simpus.pasien_kunjungan.idxstr = ' +
+        'simpus.pulang.idxstr)'
+      'where'
+      'simpus.pulang.idxstr = :idxstr')
+    Left = 272
+    Top = 416
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+end

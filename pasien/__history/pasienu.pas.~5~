@@ -1,0 +1,262 @@
+unit pasienu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, JvSplit,
+  DynVarsEh, ImgList, ActnList, System.ImageList, System.Actions, EhLibVCL;
+
+type
+  TForm1_pasien = class(TForm)
+    panelUtama: TJvPanel;
+    JvPanel1: TJvPanel;
+    JvSpinEdit1: TJvSpinEdit;
+    JvComboBox1: TJvComboBox;
+    panelUtama1: TJvPanel;
+    frxDBDataset1: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    panel02: TPanel;
+    grid2: TDBGridEh;
+    nav2: TJvDBNavigator;
+    formStorage1: TJvFormStorage;
+    lblPasien: TLabel;
+    actlst1: TActionList;
+    actCariPasien: TAction;
+    actTampilkan: TAction;
+    actPrint: TAction;
+    actClose: TAction;
+    actLab: TAction;
+    actDel: TAction;
+    actLihatIndek: TAction;
+    actRefresh: TAction;
+    ilimages1: TImageList;
+    JvPanel2: TJvPanel;
+    JvBevel1: TJvBevel;
+    btn_pasienAdd: TJvTransparentButton;
+    btnClose: TJvTransparentButton;
+    btnPrint: TJvTransparentButton;
+    btnKunjunganDel: TJvTransparentButton;
+    btnEditBpjs: TJvTransparentButton;
+    btnRefresh: TJvTransparentButton;
+    dbeditMR: TDBEdit;
+    procedure FormShow(Sender: TObject);
+    procedure nav2Click(Sender: TObject; Button: TNavigateBtn);
+    procedure grid1Exit(Sender: TObject);
+    procedure grid2Exit(Sender: TObject);
+    procedure btn_jaminanClick(Sender: TObject);
+    procedure actPrintExecute(Sender: TObject);
+    procedure actTampilkanExecute(Sender: TObject);
+    procedure actCloseExecute(Sender: TObject);
+    procedure actLihatIndekExecute(Sender: TObject);
+  private
+    { Private declarations }
+    id_terakhir : string;
+    procedure awal;
+    procedure isi_pickList(aGrid : TDBGridEh; aKolom : Integer; aQuery : string; aField : String);
+    procedure buka_data;
+    procedure terakhir_dibuka;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_pasien: TForm1_pasien;
+
+implementation
+
+uses dmPasien, aau, aau111, cetakKartuBerobatU, pasien_sentuh_u;
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+procedure TForm1_pasien.actCloseExecute(Sender: TObject);
+begin
+grid2.SaveColumnsLayoutIni(form111.MyIni, name, True);
+
+dataPasien.FDConnection1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMessage('0');
+
+end;
+
+procedure TForm1_pasien.actLihatIndekExecute(Sender: TObject);
+var sql0, sql1, id_kk : string;
+begin
+{
+try
+    sql0 := 'update simpus2.kk set last_update = current_timestamp where idx = (select max(idx) from simpus2.kk)';
+    sql1 := 'select id_kk from simpus2.kk where idx = (select max(idx) from simpus2.kk)';
+with dataPasien do
+begin
+
+  unsqlProses.SQL.Clear;
+  unsqlProses.SQL.Add(sql0);
+  unsqlProses.Execute;
+
+  fdQueryBuka.Close;
+  fdQueryBuka.SQL.Clear;
+  fdQueryBuka.SQL.Add(sql1);
+  fdQueryBuka.Open;
+
+  id_kk := fdQueryBuka.FieldByName('id_kk').AsString;
+  fdQueryBuka.Close;
+end;
+finally
+  buka_data;
+  dataPasien.qKK.Locate('id_kk', id_kk, []);
+end;
+}
+end;
+
+procedure TForm1_pasien.actPrintExecute(Sender: TObject);
+begin
+Form1_cetakKartuBerobat.ShowModal;
+end;
+
+procedure TForm1_pasien.actTampilkanExecute(Sender: TObject);
+var sql0, sql1, dites : string;
+begin
+Form1_sentuhPasien.ShowModal;
+if Form1_sentuhPasien.ModalResult = mrOk then
+begin
+    dites := '%'+UpperCase(Form1_sentuhPasien.labelEdit1.Text)+'%';
+    sql0 := 'update simpus2.capil_nik set last_updated = current_timestamp where upper(nama_lengkap) like %s or upper(nama_ayah) like %s or upper(nama_kepala_keluarga) like %s';
+
+    sql1 := Format(sql0, [QuotedStr(dites), QuotedStr(dites), QuotedStr(dites)]);
+
+    with dataPasien do
+    begin
+      fdCmd1.Execute(sql1);
+    end;
+    buka_data;
+end;
+end;
+
+procedure TForm1_pasien.awal;
+begin
+grid2.RestoreColumnsLayoutIni(form111.MyIni, name, [crpColWidthsEh]);
+
+buka_data;
+end;
+
+procedure TForm1_pasien.btn_jaminanClick(Sender: TObject);
+var sql0, sql1, dites : string;
+begin
+Form1_sentuhPasien.ShowModal;
+if Form1_sentuhPasien.ModalResult = mrOk then
+begin
+    dites := '%'+UpperCase(Form1_sentuhPasien.labelEdit1.Text)+'%';
+    sql0 := 'update simpus2.kk set last_update = current_timestamp where upper(id_kk) like %s or upper(kk) like %s';
+    sql1 := Format(sql0, [QuotedStr(dites), QuotedStr(dites)]);
+
+    with dataPasien do
+    begin
+      fdCmd1.Execute(sql1);
+    end;
+    buka_data;
+end;
+end;
+
+procedure TForm1_pasien.buka_data;
+begin
+with dataPasien do
+begin
+  FDConnection1.Connected := false;
+  fdQueryKK.Close;
+//  qKK.ParamByName('puskesmas').AsString := Form111.storageUmum.StoredValue['puskesmas'];
+  fdQueryKK.Open;
+
+  fdQueryPasien.Close;
+  fdQueryPasien.Open;
+end;
+//isi_pickList(grid2, 7, 'select status from simpus.m_kk_status', 'status');
+end;
+
+procedure TForm1_pasien.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_pasien.grid1Exit(Sender: TObject);
+begin
+//if dataPasien.qKK.Active then nav1.BtnClick(nbRefresh);
+end;
+
+procedure TForm1_pasien.grid2Exit(Sender: TObject);
+begin
+//if dataPasien.qPasien.Active then nav2.BtnClick(nbRefresh);
+end;
+
+procedure TForm1_pasien.isi_pickList(aGrid: TDBGridEh; aKolom: Integer; aQuery,
+  aField: String);
+begin
+with dataPasien do
+begin
+  fdQueryBuka.Close;
+  fdQueryBuka.SQL.Clear;
+  fdQueryBuka.SQL.Add(aQuery);
+  fdQueryBuka.Open;
+
+  aGrid.Columns[aKolom].PickList.Clear;
+  while not fdQueryBuka.Eof do
+  begin
+    aGrid.Columns[aKolom].PickList.Add(fdQueryBuka.FieldByName(aField).AsString);
+    fdQueryBuka.Next;
+  end;
+  
+  fdQueryBuka.Close;
+end;
+end;
+
+procedure TForm1_pasien.nav2Click(Sender: TObject; Button: TNavigateBtn);
+  var apv, pv : string;
+begin
+
+if Button in [ nbInsert, nbEdit] then
+begin
+  grid2.Options := grid2.Options + [dgEditing] - [dgRowSelect];
+  grid2.SetFocus;
+//  ShowMessage('tes');
+end;
+
+if Button = nbRefresh then
+begin
+  apv := dataPasien.qKK.FieldByName('id_kk').AsString;
+  pv := dataPasien.qPasien.FieldByName('mr').AsString;
+  grid2.Options := grid2.Options - [dgEditing] + [dgRowSelect];
+  buka_data;
+  dataPasien.qKK.Locate('id_kk', apv, []);
+  dataPasien.qPasien.Locate('mr', pv, []);
+//  ShowMessage('e');
+end;
+
+end;
+
+procedure TForm1_pasien.terakhir_dibuka;
+var sql0 : string;
+begin
+{
+sql0 := 'select id_kk from simpus2.kk where last_update = (select max(last_update) from simpus2.kk limit 1)';
+with dataPasien do
+begin
+   fdQueryBuka.Close;
+   fdQueryBuka.SQL.Clear;
+   fdQueryBuka.SQL.Add(sql0);
+   fdQueryBuka.Open;
+
+   id_terakhir := fdQueryBuka.FieldByName('id_kk').AsString;
+   fdQueryBuka.Close;
+
+   qKK.Locate('id_kk', id_terakhir, []);
+end;
+}
+end;
+
+end.

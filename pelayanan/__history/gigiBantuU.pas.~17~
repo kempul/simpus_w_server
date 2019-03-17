@@ -1,0 +1,194 @@
+unit gigiBantuU;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, JvExStdCtrls, JvCombobox, Vcl.ExtCtrls,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, Vcl.DBCtrls,
+  JvDBControls, EhLibVCL, GridsEh, DBAxisGridsEh, DBGridEh, Vcl.ComCtrls,
+  JvExComCtrls, JvDateTimePicker;
+
+type
+  TForm1_gigiBantu = class(TForm)
+    grp1: TGroupBox;
+    lbl13: TLabel;
+    cbbTindakanGigi0: TJvComboBox;
+    lbl14: TLabel;
+    cbbTindakanGigi1: TJvComboBox;
+    panel2: TPanel;
+    btn1: TBitBtn;
+    btnSimpan: TButton;
+    panel3: TPanel;
+    grid1: TDBGridEh;
+    nav1: TJvDBNavigator;
+    labelTgl: TLabel;
+    dtp1: TJvDateTimePicker;
+    labelIdxstr: TLabel;
+    procedure FormShow(Sender: TObject);
+    procedure cbbTindakanGigi0Change(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+    boleh_buka : Boolean;
+    procedure buka_data;
+    procedure awal;
+    function ambilIdxGigi : Integer;
+    procedure simpan_tindakanGigi;
+    function kirim_tindakangigi(idxstr : string) : Boolean;
+    function tindakanGigiTerakhir : string;
+
+    procedure isi_combo(aCombo : TComboBox; aQuery, aField : string);
+    procedure kosongkan_gigi;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_gigiBantu: TForm1_gigiBantu;
+
+implementation
+
+uses dmpelayanan, SrvParallelU;
+
+{$R *.dfm}
+
+{ TForm1_gigiBantu }
+
+function TForm1_gigiBantu.ambilIdxGigi: Integer;
+begin
+with dataPelayanan do
+begin
+  fdQueryIdxGigi.Close;
+  fdQueryIdxGigi.ParamByName('jenis').AsString := cbbTindakanGigi0.Items[cbbTindakanGigi0.ItemIndex];
+  fdQueryIdxGigi.ParamByName('ket').AsString := cbbTindakanGigi1.Items[cbbTindakanGigi1.ItemIndex];
+  fdQueryIdxGigi.Active := True;
+
+  Result := fdQueryIdxGigi.FieldByName('idx').AsInteger;
+  fdQueryIdxGigi.Close;
+end;
+end;
+
+procedure TForm1_gigiBantu.awal;
+var str0 : string;
+begin
+dtp1.DateTime := Now;
+isi_combo(TComboBox(cbbTindakanGigi0), 'select distinct jenis from simpus.m_gigi', 'jenis');
+cbbTindakanGigi0.ItemIndex := 0;
+str0 := 'select ket from simpus.m_gigi where jenis = %s';
+
+isi_combo(TComboBox(cbbTindakanGigi1), Format(str0,[QuotedStr(cbbTindakanGigi0.Items[cbbTindakanGigi0.ItemIndex])]), 'ket');
+buka_data;
+end;
+
+procedure TForm1_gigiBantu.buka_data;
+begin
+with dataPelayanan do
+begin
+  fdQueryTindakanGigi.Close;
+  fdQueryTindakanGigi.Prepare;
+  fdQueryTindakanGigi.ParamByName('idxstr').AsString := labelIdxstr.Caption;
+  fdQueryTindakanGigi.Active := True;
+end;
+end;
+
+procedure TForm1_gigiBantu.cbbTindakanGigi0Change(Sender: TObject);
+var str0 : string;
+begin
+str0 := 'select ket from simpus.m_gigi where jenis = %s';
+
+isi_combo(TComboBox(cbbTindakanGigi1), Format(str0,[QuotedStr(cbbTindakanGigi0.Items[cbbTindakanGigi0.ItemIndex])]), 'ket');
+cbbTindakanGigi1.ItemIndex := 0;
+
+end;
+
+procedure TForm1_gigiBantu.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+
+dataPelayanan.fdQueryTindakanGigi.Close;
+end;
+
+procedure TForm1_gigiBantu.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_gigiBantu.isi_combo(aCombo: TComboBox; aQuery, aField: string);
+begin
+aCombo.Clear;
+with dataPelayanan do
+begin
+  fdQueryBuka.Close;
+  fdQueryBuka.SQL.Clear;
+  fdQueryBuka.SQL.Add(aQuery);
+  fdQueryBuka.Open;
+
+  while not fdQueryBuka.Eof do
+  begin
+    aCombo.Items.Add(fdQueryBuka.FieldByName(aField).AsString);
+    fdQueryBuka.Next;
+  end;
+  fdQueryBuka.Close;
+  aCombo.ItemIndex := 0;
+end;
+
+end;
+
+function TForm1_gigiBantu.kirim_tindakangigi(idxstr: string): Boolean;
+var srv : SrvParallel;
+    id : string;
+begin
+   id := tindakanGigiTerakhir;
+   srv := SrvParallel.Create;
+   try
+     srv.tindakangigiPost(id);
+   finally
+     srv.Free;
+   end;
+end;
+
+procedure TForm1_gigiBantu.kosongkan_gigi;
+var str0 : string;
+begin
+isi_combo(TComboBox(cbbTindakanGigi0), 'select distinct jenis from simpus.m_gigi', 'jenis');
+cbbTindakanGigi0.ItemIndex := 0;
+str0 := 'select ket from simpus.m_gigi where jenis = %s';
+
+isi_combo(TComboBox(cbbTindakanGigi1), Format(str0,[QuotedStr(cbbTindakanGigi0.Items[cbbTindakanGigi0.ItemIndex])]), 'ket');
+end;
+
+
+procedure TForm1_gigiBantu.simpan_tindakanGigi;
+var sql0, sql1, strTgl : string;
+begin
+DateTimeToString(strTgl, 'YYYY-MM-DD', dtp1.Date);
+sql0 := 'insert into simpus.tindakangigi(idxstr, tgl_tindakan, tindakan) ' +
+        'values(%s, %s, %s);';
+with dataPelayanan do
+begin
+   sql1 := Format(sql0, [
+            quotedStr(labelIdxstr.Caption),
+            QuotedStr(strTgl),
+            intToStr(ambilIdxGigi)
+            ]);
+    fdCmd1.Execute(sql1);
+end;
+
+end;
+
+function TForm1_gigiBantu.tindakanGigiTerakhir: string;
+begin
+Result := '';
+with dataPelayanan do
+begin
+  fdQueryTindakanGigiTerakhir.Active := False;
+  fdQueryTindakanGigiTerakhir.ParamByName('idxstr').AsString := labelIdxstr.Caption;
+  fdQueryTindakanGigiTerakhir.Active := True;
+
+  Result := fdQueryTindakanGigiTerakhir.FieldByName('id_tindakangigi').AsString;
+  fdQueryTindakanGigiTerakhir.Active := False;
+end;
+
+end;
+
+end.

@@ -1,0 +1,33 @@
+{
+   "pg" : {
+      "pghost" : "127.0.0.1",
+      "pgdb" : "simpusclientdb",
+      "pgport" : "5432",
+      "pguser" : "ubdG7RYfmESOjcM73KdCHsoixnDwoFIBX6XUuXG4tpJagI",
+      "pgpasswd" : "dmiB16SS5Q9P3r50b9sVxqBx9yG0YpI0QXQn+3OQnpKtvUkeCqXSOFecl3eUjW",
+      "port" : "5432"
+   },
+   "serial" : "tes serial",
+   "bpjs" : {
+      "consid" : "W5LL4UaS82zwxDacn6isJj85h/P4gFfgbl",
+      "key" : "BQSGHaLJukCT4HFRJn/Z3eEqwjocXJQkhAhF87gfQPVOm89rhdWUut2SN9YS7moUSGW3Gw9nYw",
+      "userid" : "11340501",
+      "passwd" : "Nwubz36poefLDi+6LdTJO+bKxoRmk0CTGXeLjOXTIK+C3ktExwYBJ",
+      "base_uri" : "http://api.bpjs-kesehatan.go.id/pcare-rest"
+   },
+   "datang" : [ "SENDIRI", "DENGAN RUJUKAN", "RUJUK INTERNAL" ],
+   "sebabdatang" : [ "TRAUMA", "NON TRAUMA" ],
+   "trauma" : [
+      "KEC. LALU LINTAS",
+      "KEC. KERJA",
+      "KEC. RUMAH TANGGA",
+      "PENGANIAYAAN",
+      "INTOKSIKASI",
+      "GIGITAN"
+   ],
+   "puskesmas" : "P3317050101",
+   "display" : {
+      "host" : "127.0.0.1",
+      "port" : "5544"
+   }
+}

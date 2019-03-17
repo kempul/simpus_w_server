@@ -1,0 +1,177 @@
+unit lab_pasien_u;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, GridsEh,
+  DBAxisGridsEh, DBGridEh, StdCtrls, Buttons, ExtCtrls, DBCtrls, JvDBControls,
+  ComCtrls, JvExComCtrls, JvDateTimePicker, EhLibVCL, Vcl.Mask, JvExMask,
+  JvToolEdit, JvBaseEdits;
+
+type
+  TForm1_labPasien = class(TForm)
+    panel3: TPanel;
+    btnOK: TBitBtn;
+    btnCancel: TBitBtn;
+    grid1: TDBGridEh;
+    panel0: TPanel;
+    panel2: TPanel;
+    dbnav1: TJvDBNavigator;
+    checkBPJS: TCheckBox;
+    panel4: TPanel;
+    label2: TLabel;
+    label3: TLabel;
+    label4: TLabel;
+    dtp1: TJvDateTimePicker;
+    editJenis: TEdit;
+    editCalc: TJvCalcEdit;
+    btn1: TButton;
+    btn2: TSpeedButton;
+    labelNama: TLabel;
+    labelPasien: TLabel;
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnOKClick(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
+    procedure btn2Click(Sender: TObject);
+    procedure dbnav1Click(Sender: TObject; Button: TNavigateBtn);
+  private
+    { Private declarations }
+    boleh_buka : Boolean;
+    function ambilPasienLabTerakhir(idxstr : string) : string;
+    procedure kirim_pasienLab;
+    procedure simpan_permohonan_lab;
+    procedure buka_data;
+    procedure awal;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_labPasien: TForm1_labPasien;
+
+implementation
+    uses dmpelayanan, aau111, formatSettingKomputerU, labCariU;
+{$R *.dfm}
+
+function TForm1_labPasien.ambilPasienLabTerakhir(idxstr: string): string;
+begin
+Result := '';
+with dataPelayanan do
+begin
+  fdquerypas
+end;
+end;
+
+procedure TForm1_labPasien.awal;
+begin
+editJenis.Clear;
+buka_data;
+editJenis.SetFocus;
+end;
+
+procedure TForm1_labPasien.btn1Click(Sender: TObject);
+begin
+try
+simpan_permohonan_lab;
+finally
+  awal;
+end;
+end;
+
+procedure TForm1_labPasien.btn2Click(Sender: TObject);
+begin
+Form1_LabCari.ShowModal;
+if Form1_LabCari.ModalResult = mrOk then
+begin
+  editJenis.Text := Form1_LabCari.labelText.Caption;
+end;
+end;
+
+procedure TForm1_labPasien.btnOKClick(Sender: TObject);
+begin
+{
+try
+if dataPelayanan.uqLab.Modified then dataPelayanan.uqLab.Post;
+finally
+simpan_permohonan_lab;
+end;
+}
+end;
+
+procedure TForm1_labPasien.buka_data;
+begin
+with dataPelayanan do
+begin
+  fdQueryLab.Close;
+  fdQueryLab.Prepare;
+  fdQueryLab.ParamByName('idxstr').AsString := labelPasien.Caption;
+  fdQueryLab.Open();
+end;
+end;
+
+procedure TForm1_labPasien.dbnav1Click(Sender: TObject; Button: TNavigateBtn);
+begin
+if Button in [ nbInsert, nbEdit] then
+begin
+  grid1.Options := grid1.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+  grid1.Options := grid1.Options - [dgEditing] + [dgRowSelect];
+  if TDBNavigator(Sender).DataSource.DataSet.Modified then TDBNavigator(Sender).DataSource.DataSet.Post;
+end;
+
+end;
+
+procedure TForm1_labPasien.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+dataPelayanan.fdQueryLab.Close;
+end;
+
+procedure TForm1_labPasien.FormShow(Sender: TObject);
+begin
+dtp1.DateTime := Now;
+awal;
+end;
+
+procedure TForm1_labPasien.kirim_pasienLab;
+var id : string;
+begin
+
+end;
+
+procedure TForm1_labPasien.simpan_permohonan_lab;
+var strTgl, sql0, sql1 : string;
+    formatku : TFormatSettings;
+begin
+formatku := ambilLocalFormat;
+sql0 := 'insert into lab.pasien_lab(idxstr, tanggal, jenis, hasil) values(%s, %s, %s, %s);';
+DateTimeToString(strTgl, 'YYYY-MM-DD', dtp1.DateTime);
+with dataPelayanan do
+begin
+  sql1 := Format(sql0, [
+          quotedStr(labelPasien.Caption),
+          quotedStr(strTgl),
+          QuotedStr(editJenis.Text),
+          floatToStr(editCalc.Value, formatku)
+          ]);
+   fdCmd1.Execute(sql1);
+end;
+{
+with dataPelayanan do
+begin
+  unspLab_dari_pv.Prepare;
+  unspLab_dari_Pv.ParamByName('ip_tanggal').AsDate := uqLab.FieldByName('tanggal').AsDateTime;
+  unspLab_dari_Pv.ParamByName('ip_nomor').AsInteger := uqLab.FieldByName('nomor').AsInteger;
+  unspLab_dari_Pv.ParamByName('ip_bpjs').AsBoolean := checkBPJS.Checked;
+  unspLab_dari_Pv.ParamByName('ip_tgl_pelayanan').AsDate :=  dtp1.Date;
+  unspLab_dari_Pv.ExecProc;
+end;
+}
+end;
+
+end.

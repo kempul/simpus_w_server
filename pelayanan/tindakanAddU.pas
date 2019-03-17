@@ -1,0 +1,260 @@
+unit tindakanAddU;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, JvExStdCtrls, JvCombobox, JvDBSearchComboBox, ComCtrls,
+  JvExComCtrls, JvDateTimePicker, Mask, JvExMask, JvToolEdit, JvBaseEdits,
+  Buttons, JvDBControls, Vcl.ExtCtrls, DBGridEhGrouping, ToolCtrlsEh,
+  DBGridEhToolCtrls, DynVarsEh, EhLibVCL, GridsEh, DBAxisGridsEh, DBGridEh,
+  Vcl.DBCtrls, JvComCtrls;
+
+type
+  TForm1_tindakanAdd = class(TForm)
+    panel2: TPanel;
+    labelTgl: TLabel;
+    labellbl1: TLabel;
+    labelBiaya: TLabel;
+    labelKet: TLabel;
+    label2: TLabel;
+    btnTindakanCari: TSpeedButton;
+    dtp1: TJvDateTimePicker;
+    edit1Ket: TEdit;
+    edit1: TJvCalcEdit;
+    editBiaya: TJvCalcEdit;
+    editTindakan: TEdit;
+    panel3: TPanel;
+    labelKodeTindakan: TLabel;
+    labelIdxstr: TLabel;
+    btn1: TBitBtn;
+    panel4: TPanel;
+    btnSimpan: TButton;
+    checkBpjs: TCheckBox;
+    lblTkp: TLabel;
+    pageControl1: TJvPageControl;
+    ts1: TTabSheet;
+    grid1: TDBGridEh;
+    nav1: TJvDBNavigator;
+    ts2: TTabSheet;
+    mmoPayload: TMemo;
+    mmoHeader: TMemo;
+    btn2: TButton;
+    mmoResponse: TMemo;
+    procedure FormShow(Sender: TObject);
+    procedure dtp1KeyPress(Sender: TObject; var Key: Char);
+    procedure edit1KeyPress(Sender: TObject; var Key: Char);
+    procedure editTindakanKeyPress(Sender: TObject; var Key: Char);
+    procedure btnTindakanCariClick(Sender: TObject);
+    procedure btnSimpanClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btn2Click(Sender: TObject);
+  private
+    { Private declarations }
+    iDummi : Integer;
+    idTindakan : string;
+    procedure berikutnya(Sender: TObject; var Key: Char);
+    procedure buka_data;
+    procedure simpanTindakan;
+    procedure kirimTindakan;
+    function ambilTindakanTerakhir : string;
+    procedure awal;
+
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_tindakanAdd: TForm1_tindakanAdd;
+
+implementation
+
+uses
+  dmpelayanan, mtindakanLuU, aau111, OtlParallel, brTindakanU, brCommonsU, synautil; //, SrvParallelU;
+
+{$R *.dfm}
+
+{ TForm1_tindakanAdd }
+
+function TForm1_tindakanAdd.ambilTindakanTerakhir: string;
+begin
+with dataPelayanan do
+begin
+  fdQueryTindakanTerakhir.Close;
+  fdQueryTindakanTerakhir.ParamByName('idxstr').AsString := labelIdxstr.Caption;
+  fdQueryTindakanTerakhir.Active := True;
+
+  Result := fdQueryTindakanTerakhir.FieldByName('id_tindakan').AsString;
+  fdQueryTindakanTerakhir.Close;
+end;
+end;
+
+procedure TForm1_tindakanAdd.awal;
+begin
+grid1.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+dtp1.DateTime := Now;
+editTindakan.Clear;
+editBiaya.Value := 0;
+edit1Ket.Clear;
+buka_data;
+
+dtp1.SetFocus;
+
+end;
+
+procedure TForm1_tindakanAdd.berikutnya(Sender: TObject; var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(Sender), True, True);
+end;
+
+procedure TForm1_tindakanAdd.btn2Click(Sender: TObject);
+var br0 : bridgeCommon;
+    ts : TMemoryStream;
+begin
+    ts := TMemoryStream.Create;
+    WriteStrToStream(ts, mmoPayload.Lines.Text);
+    br0:= bridgeCommon.Create;
+
+    br0.tsHeader.Assign(mmoHeader.Lines);
+    br0.httpPost('https://dvlp.bpjs-kesehatan.go.id:9081/pcare-rest-v3.0/tindakan', ts);
+    mmoResponse.Lines.Assign(br0.tsResponse);
+    br0.Free;
+    ts.Free;
+
+end;
+
+procedure TForm1_tindakanAdd.btnSimpanClick(Sender: TObject);
+begin
+dtp1.Time := Time;
+
+simpanTindakan;
+try
+  buka_data;
+finally
+  idTindakan := ambilTindakanTerakhir;
+  //ShowMessage(idTindakan);
+  if checkBpjs.Checked then kirimTindakan;
+end;
+end;
+
+procedure TForm1_tindakanAdd.btnTindakanCariClick(Sender: TObject);
+begin
+  Form1_tindakanLU.lblTkp.Caption := lblTkp.Caption;
+  Form1_tindakanLU.ShowModal;
+  if Form1_tindakanLU.ModalResult = mrOk then
+  begin
+    with dataPelayanan do
+    begin
+    editTindakan.Text := fdQueryMTindakanLU.FieldByName('nm_tindakan').AsString;
+    labelKodeTindakan.Caption := fdQueryMTindakanLU.FieldByName('kd_tindakan').AsString;
+    editBiaya.AsInteger := fdQueryMTindakanLU.FieldByName('max_tarif').AsInteger;
+
+    fdQueryMTindakanLU.Close;
+    end;
+  end;
+end;
+
+procedure TForm1_tindakanAdd.buka_data;
+begin
+with dataPelayanan do
+begin
+  fdQueryTindakan.Close;
+  fdQueryTindakan.Prepare;
+  fdQueryTindakan.ParamByName('idxstr').AsString := labelIdxstr.Caption;
+  fdQueryTindakan.Active := True;
+
+end;
+end;
+
+procedure TForm1_tindakanAdd.dtp1KeyPress(Sender: TObject; var Key: Char);
+begin
+berikutnya(Sender, key);
+end;
+
+procedure TForm1_tindakanAdd.edit1KeyPress(Sender: TObject; var Key: Char);
+begin
+berikutnya(Sender, key);
+end;
+
+procedure TForm1_tindakanAdd.editTindakanKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+berikutnya(Sender, key);
+end;
+
+procedure TForm1_tindakanAdd.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+dataPelayanan.fdQueryTindakan.Close;
+end;
+
+procedure TForm1_tindakanAdd.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_tindakanAdd.kirimTindakan;
+var id : string;
+  br0 : brTindakan;
+
+begin
+
+       //showMessage('awal fisik');
+      br0 := brTindakan.Create;
+      try
+      //br0.tsHeader.Add('Content-Type:application/json');
+      //ShowMessage(idTindakan);
+      br0.postTindakanTunggal(idTindakan);
+      //mmo1.Lines.Clear;
+      //mmo1.Lines.AddStrings(br0.tsHeader);
+     // mmo1.Lines.AddStrings(br0.t);
+      finally
+        br0.Free;
+      end;
+      //showMessage('akhir fisik');
+
+{
+     Parallel.Async(
+   procedure
+   var
+
+      //srv : srvFisik;
+      br0 : brTindakan;
+   begin
+
+      //showMessage('awal fisik');
+      br0 := brTindakan.Create;
+      try
+      br0.postTindakanTunggal(idTindakan);
+      finally
+        br0.Free;
+      end;
+      //showMessage('akhir fisik');
+   end
+   );
+}
+end;
+
+procedure TForm1_tindakanAdd.simpanTindakan;
+var sql0, sql1, strTgl : string;
+begin
+   DateTimeToString(strTgl, 'YYYY-MM-DD hh:nn:ss', dtp1.DateTime);
+   sql0 := 'insert into simpus.tindakan(idxstr, kd_tindakan, biaya, keterangan, hasil, tanggal) ' +
+            ' values(%s, %s, %s, %s, %s, %s);';
+   sql1 := Format(sql0, [
+          QuotedStr(labelIdxstr.Caption),
+          QuotedStr(labelKodeTindakan.Caption),
+          IntTostr(editBiaya.AsInteger),
+          QuotedStr(edit1Ket.Text),
+          IntToStr(edit1.AsInteger),
+          QuotedStr(strTgl)
+          ]);
+    with dataPelayanan do
+    begin
+      fdCmd1.Execute(sql1);
+    end;
+end;
+
+
+end.

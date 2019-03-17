@@ -1,0 +1,886 @@
+unit pasienPelayananRIu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, DynVarsEh,
+  JvToolEdit, ComCtrls, JvExComCtrls, JvDateTimePicker, JvMemo, DBCtrlsEh, pngimage,
+  JvBaseEdits, Menus, JvMenus, ActnList, ImgList, JvRichEdit, JvDBRichEdit,
+  Pipes, JvEdit, JvComCtrls, JvBaseDlg, JvProgressDialog,
+  System.Actions, EhLibVCL, System.ImageList, JvCheckBox;
+
+type
+
+  TForm1_pelayananRI = class(TForm)
+    panelUtama: TJvPanel;
+    panelUtama1: TJvPanel;
+    panelMenu: TJvPanel;
+    btn_close: TJvTransparentButton;
+    bevel1: TJvBevel;
+    panel4: TPanel;
+    grid1: TDBGridEh;
+    images1: TImageList;
+    actlst1: TActionList;
+    actCariPasien: TAction;
+    actNew: TAction;
+    actPrint: TAction;
+    actClose: TAction;
+    actLab: TAction;
+    actEdit: TAction;
+    pipeClient1: TPipeClient;
+    actPulang: TAction;
+    btnRefresh: TJvTransparentButton;
+    actRefresh: TAction;
+    pageControl1: TJvPageControl;
+    ts1: TTabSheet;
+    ts2: TTabSheet;
+    gridDiag: TDBGridEh;
+    navDiag: TJvDBNavigator;
+    gridFisik: TDBGridEh;
+    navFisik: TJvDBNavigator;
+    actPindah: TAction;
+    actObat: TAction;
+    actTindakan: TAction;
+    actBPJS: TAction;
+    pb1: TJvProgressDialog;
+    tsData: TTabSheet;
+    memoData: TMemo;
+    tsResponse: TTabSheet;
+    memoResponse: TMemo;
+    btnCetakRujukan: TJvTransparentButton;
+    tsALL: TTabSheet;
+    memoAll: TMemo;
+    actImunisasi: TAction;
+    actPoned: TAction;
+    tsOlah: TTabSheet;
+    memoOlah: TMemo;
+    memoSQL: TMemo;
+    panel41: TPanel;
+    panel42: TPanel;
+    btnPoned: TJvTransparentButton;
+    btnImunisasi: TJvTransparentButton;
+    btnPulang: TJvTransparentButton;
+    btnLabTes: TJvTransparentButton;
+    btnObat: TJvTransparentButton;
+    btnTindakan: TJvTransparentButton;
+    dtp1: TDateTimePicker;
+    tsKontrol: TTabSheet;
+    panelKontrol: TPanel;
+    dbeditIdxStr: TDBEdit;
+    btnBed: TJvTransparentButton;
+    actBed: TAction;
+    panel40: TPanel;
+    dbtxtnama_lengkap: TDBText;
+    btnBedDel: TJvTransparentButton;
+    actBedDel: TAction;
+    btnFisik: TJvTransparentButton;
+    actFisik: TAction;
+    btnDiagnosa: TJvTransparentButton;
+    actDiagnosa: TAction;
+    checkBpjs: TCheckBox;
+    btnTindakanGigi: TJvTransparentButton;
+    actTindakanGigi: TAction;
+    checkDirujuk: TCheckBox;
+    btnDaftar: TJvTransparentButton;
+    actDaftar: TAction;
+    btnPasienDel: TJvTransparentButton;
+    actPasienDel: TAction;
+    chk1NonSpesialis: TJvCheckBox;
+    actRujuk: TAction;
+    btnRujuk: TJvTransparentButton;
+    frxdb1Cetak: TfrxDBDataset;
+    frxdb1CetakNon: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    frxReport2: TfrxReport;
+    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure grid1GetCellParams(Sender: TObject; Column: TColumnEh;
+      AFont: TFont; var Background: TColor; State: TGridDrawState);
+    procedure cbbPoliChange(Sender: TObject);
+    procedure actCloseExecute(Sender: TObject);
+    procedure cbbKesadaranKeyPress(Sender: TObject; var Key: Char);
+    procedure dtpTindakanKeyPress(Sender: TObject; var Key: Char);
+    procedure checkKasusBaruKeyPress(Sender: TObject; var Key: Char);
+    procedure actRefreshExecute(Sender: TObject);
+    procedure navFisikClick(Sender: TObject; Button: TNavigateBtn);
+    procedure pb1Progress(Sender: TObject; var AContinue: Boolean);
+    procedure dtp1Change(Sender: TObject);
+    procedure actBedExecute(Sender: TObject);
+    procedure dbeditIdxStrChange(Sender: TObject);
+    procedure actBedDelExecute(Sender: TObject);
+    procedure actFisikExecute(Sender: TObject);
+    procedure actDiagnosaExecute(Sender: TObject);
+    procedure actTindakanExecute(Sender: TObject);
+    procedure actObatExecute(Sender: TObject);
+    procedure actPulangExecute(Sender: TObject);
+    procedure actPonedExecute(Sender: TObject);
+    procedure actImunisasiExecute(Sender: TObject);
+    procedure actTindakanGigiExecute(Sender: TObject);
+    procedure actLabExecute(Sender: TObject);
+    procedure actPrintExecute(Sender: TObject);
+    procedure actPindahExecute(Sender: TObject);
+    procedure actDaftarExecute(Sender: TObject);
+    procedure actPasienDelExecute(Sender: TObject);
+    procedure actRujukExecute(Sender: TObject);
+  private
+    { Private declarations }
+    boleh_buka : Boolean;
+
+    procedure eksekusi_script(aSQL : TStrings);
+
+    function ambil_rujukan(idxstr : string) : Boolean;
+    procedure awal;
+    procedure buka_data;
+    procedure buka_fisik;
+
+    procedure kontrol_berikutnya(Sender: TObject; var Key: Char);
+
+
+    procedure isi_pickList(aGrid : TDBGridEh; aKolom : Integer; aQuery : string; aField : String);
+    procedure isi_combo(aCombo : TComboBox; aQuery, aField : string);
+    procedure kosongkan_form;
+    procedure simpan_rawat_inap(kamar : string);
+    procedure hapus_rawat_inap(id : string);
+    procedure hapus_kunjungan_ri(id : string);
+
+    function ambil_idxGigi : Integer;
+    function ambil_idxPoned : Integer;
+
+    procedure usai_tindakan;
+
+    procedure tampilkan_imunisasi;
+    function cariICDX : boolean;
+
+    procedure kirim_rawat_inap(id : string);
+    procedure hapus_rawat_inap_dinkes(id : string);
+
+    procedure kirim_fisik(id : string);
+
+    function kirimDiagnosa(id_diag : string) : Boolean;
+    function kirimIcdx(kode : string) : Boolean;
+    function kirimPulang(idxstr : string) : Boolean;
+
+
+    function tindakanDiagnosaTerakhir(idxstr : string) : string;
+    procedure tampilan_tab;
+
+    procedure proses_pendaftaran(idxstr : string);
+    procedure proses_bpjs(idxstr : string);
+    procedure proses_obat(idxstr : string);
+    procedure proses_tindakan(idxstr : string);
+
+    function kirimBlokFisik(isJkn : Boolean; idKunjungan : string) : Boolean;
+
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_pelayananRI: TForm1_pelayananRI;
+
+implementation
+
+uses aau, aau111, dmRI, pulangBantuU, ICDXCariu, gigiBantuU,
+  ponedBantuU, lab_pasien_u, icdx_edit_u, tindakanAddU, obatAddU,
+  ImunisasiBantuU, bedDlgU, fisikAddU, diagnosaAddU,
+  SrvBpjsParallelU, brKunjunganU, kunjunganRiU, OtlParallel, brPendaftaranU,
+  faskesRujukanU, lab_bpjs; //SrvParallelU, srvFisikU,
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+procedure TForm1_pelayananRI.actBedDelExecute(Sender: TObject);
+var id : string;
+begin
+id := dbeditIdxStr.Field.AsString;
+if MessageDlg('Yakin untuk Menghapus Kamar?', mtConfirmation, mbYesNo, 0) = mrYes then
+begin
+  try
+  hapus_rawat_inap(id);
+  finally
+    try
+    buka_data;
+    finally
+      hapus_rawat_inap_dinkes(id);
+    end;
+  end;
+end;
+
+end;
+
+procedure TForm1_pelayananRI.actBedExecute(Sender: TObject);
+var id : string;
+begin
+id := dbeditIdxStr.Field.AsString;
+Form1_bedDlg.Caption := 'Menentukan Kamar Pasien : ' + dataRI.fdQueryRI.FieldByName('nama_lengkap').AsString;
+form1_bedDlg.ShowModal;
+if Form1_bedDlg.ModalResult = mrOk then
+begin
+  try
+  simpan_rawat_inap(Form1_bedDlg.labelKamar.Caption);
+  finally
+    try
+    buka_data;
+    finally
+      kirim_rawat_inap(id);
+    end;
+
+  end;
+end;
+
+end;
+
+procedure TForm1_pelayananRI.actCloseExecute(Sender: TObject);
+begin
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+gridFisik.SaveColumnsLayoutIni(form111.MyIni, Name, False);
+gridDiag.SaveColumnsLayoutIni(form111.MyIni, Name, False);
+
+dataRI.FDConnection1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMessage('0');
+
+end;
+
+procedure TForm1_pelayananRI.actDaftarExecute(Sender: TObject);
+begin
+try
+Form1_kunjunganRI.ShowModal;
+finally
+  buka_data;
+end;
+end;
+
+procedure TForm1_pelayananRI.actDiagnosaExecute(Sender: TObject);
+var id, icdx : string;
+begin
+id := dbeditIdxStr.Field.AsString;
+Form1_diagnosaAdd.Caption := 'Tambah Diagnosa Pasien - ' + dbtxtnama_lengkap.Field.AsString;
+Form1_diagnosaAdd.labelIdxstr.Caption := id;
+Form1_diagnosaAdd.ShowModal;
+if Form1_diagnosaAdd.ModalResult = mrOK then
+begin
+  try
+    icdx := Form1_diagnosaAdd.editICDX.Text;
+    kirimIcdx(icdx);
+
+  finally
+    try
+      buka_data;
+    finally
+        kirimDiagnosa(tindakanDiagnosaTerakhir(id));
+     end;
+  end;
+end;
+end;
+
+procedure TForm1_pelayananRI.actFisikExecute(Sender: TObject);
+var id : string;
+    cekJkn : Boolean;
+begin
+id := dbeditIdxStr.Field.AsString;
+cekJkn := checkBpjs.Checked;
+Form1_fisikAdd.Caption := 'Pemeriksaan Fisik Pasien - ' + dbtxtnama_lengkap.Field.AsString;
+Form1_fisikAdd.labelIdxstr.Caption := id;
+Form1_fisikAdd.ShowModal;
+if Form1_fisikAdd.ModalResult = mrOK then
+begin
+   try
+   buka_data;
+   finally
+     kirimBlokFisik(cekJkn, id);
+   end;
+end;
+end;
+
+procedure TForm1_pelayananRI.actImunisasiExecute(Sender: TObject);
+begin
+     Form1_ImunisasiBantu.Caption := 'Imunisasi : ' + dbtxtnama_lengkap.Field.AsString;
+     Form1_ImunisasiBantu.labelIdxStr.Caption := dbeditIdxstr.Field.AsString;
+     Form1_ImunisasiBantu.ShowModal;
+end;
+
+procedure TForm1_pelayananRI.actLabExecute(Sender: TObject);
+begin
+Form1_labBpjs.lblPasien.Caption := dbtxtnama_lengkap.Field.AsString;
+Form1_labBpjs.lbl1Idxstr.Caption := dbeditIdxstr.Field.AsString;
+Form1_labBpjs.dtPicker1.Date := dtp1.date;
+Form1_labBpjs.chk1Bpjs.Checked := checkBPJS.Checked;
+form1_labBpjs.ShowModal;
+
+
+end;
+
+procedure TForm1_pelayananRI.actObatExecute(Sender: TObject);
+begin
+Form1_obatAdd.labelIdxstr.Caption := dbeditIdxstr.Field.AsString;
+Form1_obatAdd.checkBpjs.Checked := checkBPJS.Checked;
+Form1_obatAdd.Caption := 'Menambahkan Obat pada pasien ' + dbtxtnama_lengkap.Field.AsString;
+try
+form1_obatAdd.ShowModal;
+finally
+  if checkBPJS.Checked then proses_obat(dbeditIdxstr.Field.AsString);
+end;
+end;
+
+procedure TForm1_pelayananRI.actPasienDelExecute(Sender: TObject);
+var idxstr : string;
+begin
+if MessageDlg('Apakah Anda yakin menhapus kunjungan?', mtConfirmation, mbYesNo, 0 ) = mrYes then
+ begin
+   idxstr := dataRI.fdQueryRI.FieldByName('idxstr').AsString;
+   try
+   hapus_kunjungan_ri(idxstr);
+   finally
+     buka_data;
+     ShowMessage('Ok');
+   end;
+ end;
+end;
+
+procedure TForm1_pelayananRI.actPindahExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure TForm1_pelayananRI.actPonedExecute(Sender: TObject);
+begin
+  Form1_ponedBantu.labelIdxstr.Caption := dbeditIdxstr.Field.AsString;
+  Form1_ponedBantu.Caption := 'PONED Pasien : ' + dbtxtnama_lengkap.Field.AsString;
+  Form1_ponedBantu.ShowModal;
+end;
+
+procedure TForm1_pelayananRI.actPrintExecute(Sender: TObject);
+begin
+if not checkDirujuk.Checked then
+begin
+  ShowMessage('Pasien Belum dirujuk, Ubah status pulang menjadi di rujuk !');
+  Exit;
+end;
+if checkBPJS.Checked then
+begin
+   with dataRI do
+   begin
+     fdQ1Cetak.Close;
+     fdQ1Cetak.ParamByName('idxstr').AsString := dbeditIdxstr.Field.AsString;
+     fdQ1Cetak.Open();
+
+     if not fdQ1Cetak.IsEmpty then   frxReport1.ShowReport() else ShowMessage('Data tidak ditemukan');
+
+   end;
+end else
+begin
+   with dataRI do
+   begin
+     fdQ1CetakNon.Close;
+     fdQ1CetakNon.ParamByName('idxstr').AsString := dbeditIdxstr.Field.AsString;
+     fdQ1CetakNon.Open();
+
+     if not fdQ1CetakNon.IsEmpty then   frxReport2.ShowReport();
+
+   end;
+
+end;
+end;
+
+procedure TForm1_pelayananRI.actPulangExecute(Sender: TObject);
+var spesialis, cekJkn : Boolean;
+    idxstr : string;
+begin
+idxstr := dbeditIdxstr.Field.AsString;
+cekJkn := checkBpjs.Checked;
+with dataRI do
+begin
+  fdQueryCheckSpesialis.Close;
+  fdQueryCheckSpesialis.Active := True;
+  spesialis := fdQueryCheckSpesialis.FieldByName('jml').AsInteger > 0;
+  fdQueryCheckSpesialis.Close;
+end;
+
+Form1_pulangBantu.labelIdxstr.Caption := idxstr;
+Form1_pulangBantu.dtpPulang.Date := Now;
+Form1_pulangBantu.grpTacc.Visible := not spesialis;
+Form1_pulangBantu.check1BPJS.Checked := checkBPJS.Checked;
+Form1_pulangBantu.check1Inap.Checked := true;
+Form1_pulangBantu.ShowModal;
+if Form1_pulangBantu.ModalResult = mrOK then
+begin
+kirimPulang(idxstr);
+buka_data;
+ShowMessage('Data Pulang Disimpan');
+if cekJkn then proses_bpjs(idxstr);
+end;
+
+end;
+
+procedure TForm1_pelayananRI.actRefreshExecute(Sender: TObject);
+begin
+buka_data;
+end;
+
+procedure TForm1_pelayananRI.actRujukExecute(Sender: TObject);
+var
+  s1 : string;
+  brKunj : brKunjungan;
+begin
+//ShowMessage('tes');
+
+brKunj := brKunjungan.Create;
+try
+s1 := brKunj.ambilJsonKunjungan(dbeditIdxstr.Field.AsString);
+finally
+  brKunj.Free;
+end;
+
+
+Form1_faskesRujukan.editNoKartu.Text := dataRI.fdQueryRI.FieldByName('kartu_bpjs').AsString;
+Form1_faskesRujukan.editIdxstr.Text := dataRI.fdQueryRI.FieldByName('idxstr').AsString;
+Form1_faskesRujukan.chk1NonSpesialis.Checked := dataRI.fdQueryRm.FieldByName('non_spesialis').AsBoolean;
+Form1_faskesRujukan.mmoDummi.Lines.Text := s1;
+
+
+form1_faskesRujukan.ShowModal;
+end;
+
+procedure TForm1_pelayananRI.actTindakanExecute(Sender: TObject);
+begin
+Form1_tindakanAdd.lblTkp.Caption := dataRI.fdQueryRI.FieldByName('kd_tkp').AsString;
+Form1_tindakanAdd.labelIdxstr.Caption := dbeditIdxstr.Field.AsString;
+Form1_tindakanAdd.checkBpjs.Checked := checkBPJS.Checked;
+Form1_tindakanAdd.Caption := 'Menambahkan tindakan pasien : ' + dbtxtnama_lengkap.Field.AsString;
+try
+form1_tindakanAdd.ShowModal;
+finally
+  if checkBpjs.Checked then proses_tindakan(dbeditIdxStr.Field.AsString);
+
+end;
+
+end;
+
+procedure TForm1_pelayananRI.actTindakanGigiExecute(Sender: TObject);
+begin
+Form1_gigiBantu.Caption := 'Tindakan Gigi pada Pasien : ' + dbtxtnama_lengkap.Field.AsString;
+Form1_gigiBantu.labelIdxstr.Caption := dbeditIdxstr.Field.AsString;
+Form1_gigiBantu.ShowModal;
+end;
+
+function TForm1_pelayananRI.ambil_idxGigi: Integer;
+begin
+end;
+
+function TForm1_pelayananRI.ambil_idxPoned: Integer;
+begin
+end;
+
+function TForm1_pelayananRI.ambil_rujukan(idxstr : string): Boolean;
+var srvBpjs : brKunjungan;
+begin
+Result := False;
+srvBpjs := brKunjungan.Create;
+try
+  Result := srvBpjs.getRujukan(idxstr);
+finally
+  srvBpjs.Free;
+end;
+
+end;
+
+procedure TForm1_pelayananRI.awal;
+begin
+dtp1.DateTime := Now;
+grid1.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+gridFisik.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+gridDiag.RestoreColumnsLayoutIni(Form111.MyIni, name, [crpColWidthsEh]);
+kosongkan_form;
+buka_data;
+end;
+
+procedure TForm1_pelayananRI.buka_data;
+begin
+dataRI.FDConnection1.Close;
+with dataRI do
+begin
+  fdQueryRi.Close;
+  fdQueryRI.Prepare;
+  fdQueryRI.ParamByName('tanggal').AsDate := dtp1.Date;
+  fdQueryRi.Active := True;
+
+  fdQueryFisik.Open();
+  fdQueryRm.Open();
+end;
+boleh_buka := True;
+end;
+
+procedure TForm1_pelayananRI.buka_fisik;
+begin
+with dataRI do
+begin
+  fdQueryFisik.Close;
+  fdQueryFisik.Open();
+end;
+end;
+
+function TForm1_pelayananRI.cariICDX: boolean;
+begin
+end;
+
+procedure TForm1_pelayananRI.cbbKesadaranKeyPress(Sender: TObject; var Key: Char);
+begin
+kontrol_berikutnya(Sender, Key);
+end;
+
+procedure TForm1_pelayananRI.cbbPoliChange(Sender: TObject);
+begin
+if boleh_buka then buka_data;
+
+end;
+
+procedure TForm1_pelayananRI.checkKasusBaruKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+kontrol_berikutnya(Sender, key);
+end;
+
+procedure TForm1_pelayananRI.dbeditIdxStrChange(Sender: TObject);
+begin
+if dataRI.fdQueryRI.Active then
+with dataRI do
+begin
+btnBed.Visible := fdQueryRI.FieldByName('kamar').IsNull;
+btnPasienDel.Visible := btnBed.Visible;
+btnBedDel.Visible := not btnBed.Visible;
+btnFisik.Visible := fdQueryRI.FieldByName('periksa_fisik').AsInteger = 0;
+checkBpjs.Checked := fdQueryRI.FieldByName('biaya').AsString = 'JKN';
+checkDirujuk.Checked := fdQueryRI.FieldByName('pulang_sebab').AsString = 'Rujuk Lanjut';
+//btnCetakRujukan.Visible := ch
+end;
+end;
+
+procedure TForm1_pelayananRI.dtp1Change(Sender: TObject);
+begin
+if boleh_buka then buka_data;
+end;
+
+procedure TForm1_pelayananRI.dtpTindakanKeyPress(Sender: TObject; var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(sender), True, True );
+
+end;
+
+procedure TForm1_pelayananRI.eksekusi_script(aSQL: TStrings);
+begin
+end;
+
+procedure TForm1_pelayananRI.FormCreate(Sender: TObject);
+begin
+boleh_buka := False;
+end;
+
+procedure TForm1_pelayananRI.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_pelayananRI.grid1GetCellParams(Sender: TObject;
+  Column: TColumnEh; AFont: TFont; var Background: TColor;
+  State: TGridDrawState);
+begin
+
+if dataRI.fdQueryRI.FieldByName('kamar').IsNull then
+begin
+    AFont.Style := AFont.Style + [fsBold];
+    AFont.Color := clMaroon;
+end;
+{
+if dataPelayanan.uqKunjungan1.FieldByName('sdh_pulang').AsInteger = 1 then
+begin
+    AFont.Style := AFont.Style + [fsBold];
+    AFont.Color := clMaroon;
+end;
+}
+end;
+
+procedure TForm1_pelayananRI.hapus_kunjungan_ri(id: string);
+var sql0, sql1 : string;
+    //srv : SrvParallel;
+begin
+
+   sql0 := 'delete from simpus.pasien_kunjungan where idxstr = %s;';
+   with dataRI do
+   begin
+     sql1 := Format(sql0, [QuotedStr(id)]);
+
+     fdCmd1.Execute(sql1);
+   end;
+   {
+   srv := SrvParallel.Create;
+   try
+     srv.kunjunganDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+procedure TForm1_pelayananRI.hapus_rawat_inap(id: string);
+var sql0, sql1 : string;
+begin
+   sql0 := 'delete from simpus.rawat_inap where idxstr = %s;';
+   with dataRI do
+   begin
+     sql1 := Format(sql0, [QuotedStr(id)]);
+
+     fdCmd1.Execute(sql1);
+   end;
+end;
+
+procedure TForm1_pelayananRI.hapus_rawat_inap_dinkes(id: string);
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.rawatinapDelete(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+procedure TForm1_pelayananRI.isi_combo(aCombo: TComboBox; aQuery, aField: string);
+begin
+end;
+
+procedure TForm1_pelayananRI.isi_pickList(aGrid: TDBGridEh; aKolom: Integer;
+  aQuery, aField: String);
+begin
+end;
+
+function TForm1_pelayananRI.kirimBlokFisik(isJkn: Boolean;
+  idKunjungan: string): Boolean;
+begin
+        Parallel.Async(
+   procedure
+   var
+    //  srv : srvFisik;
+      br0 : brPendaftaran;
+   begin
+      {
+      srv := srvFisik.Create;
+      try
+      srv.postFisik(idKunjungan);
+      finally
+        srv.Free;
+      end;
+      }
+      if isJkn then
+      begin
+        br0 := brPendaftaran.Create;
+        try
+          br0.postPendaftaran(idKunjungan);
+        finally
+          br0.Free;
+        end;
+      end;
+   end
+   );
+end;
+
+function TForm1_pelayananRI.kirimDiagnosa(id_diag: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.diagnosaPost(id_diag);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TForm1_pelayananRI.kirimIcdx(kode: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.icdxPost(kode);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+function TForm1_pelayananRI.kirimPulang(idxstr: string): Boolean;
+//var srv : SrvParallel;
+begin
+  {
+   srv := SrvParallel.Create;
+   try
+     srv.pulangPost(idxstr);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+procedure TForm1_pelayananRI.kirim_fisik(id: string);
+//var srv : SrvParallel;
+begin
+  {
+  srv := SrvParallel.Create;
+  try
+    srv.fisikPost(id);
+  finally
+    srv.Free;
+  end;
+  }
+end;
+
+procedure TForm1_pelayananRI.kirim_rawat_inap(id: string);
+//var srv : SrvParallel;
+begin
+   {
+   srv := SrvParallel.Create;
+   try
+     srv.rawatinapPost(id);
+   finally
+     srv.Free;
+   end;
+   }
+end;
+
+procedure TForm1_pelayananRI.kontrol_berikutnya(Sender: TObject; var Key: Char);
+begin
+if Key = #13 then SelectNext(TWinControl(sender), True, True );
+end;
+
+procedure TForm1_pelayananRI.kosongkan_form;
+begin
+end;
+
+procedure TForm1_pelayananRI.navFisikClick(Sender: TObject; Button: TNavigateBtn);
+  var apv : string;
+begin
+if Button in [ nbInsert, nbEdit] then
+begin
+  gridFisik.Options := gridFisik.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+  gridFisik.Options := gridFisik.Options - [dgEditing] + [dgRowSelect];
+  if TDBNavigator(Sender).DataSource.DataSet.Modified then TDBNavigator(Sender).DataSource.DataSet.Post;
+end;
+
+
+end;
+
+procedure TForm1_pelayananRI.pb1Progress(Sender: TObject; var AContinue: Boolean);
+begin
+Application.ProcessMessages;
+end;
+
+
+procedure TForm1_pelayananRI.proses_bpjs(idxstr: string);
+var srv : SrvBpjsParallel;
+begin
+  srv := SrvBpjsParallel.Create;
+  try
+    srv.bpjsAllPost(idxstr);
+  finally
+    srv.Free;
+  end;
+end;
+
+procedure TForm1_pelayananRI.proses_obat(idxstr: string);
+var srvBpjs : SrvBpjsParallel;
+begin
+  srvBpjs := SrvBpjsParallel.Create;
+  try
+    srvBpjs.bpjsObatPost(idxstr);
+  finally
+    srvBpjs.Free;
+  end;
+end;
+
+procedure TForm1_pelayananRI.proses_pendaftaran(idxstr: string);
+var srv : SrvBpjsParallel;
+begin
+  srv := SrvBpjsParallel.Create;
+  try
+    srv.bpjsPendaftaranPost(idxstr);
+  finally
+    srv.Free;
+  end;
+end;
+
+procedure TForm1_pelayananRI.proses_tindakan(idxstr: string);
+var srvBpjs : SrvBpjsParallel;
+begin
+  srvBpjs := SrvBpjsParallel.Create;
+  try
+    srvBpjs.bpjsTindakanPost(idxstr);
+  finally
+    srvBpjs.Free;
+  end;
+end;
+
+procedure TForm1_pelayananRI.simpan_rawat_inap(kamar: string);
+var idxstr, sql0, sql1 : string;
+begin
+   idxstr := dbeditIdxStr.Field.AsString;
+   sql0 := 'insert into simpus.rawat_inap(idxstr, kamar) values(%s, %s);';
+   with dataRI do
+   begin
+     sql1 := Format(sql0, [QuotedStr(idxstr), QuotedStr(kamar)]);
+
+     fdCmd1.Execute(sql1);
+   end;
+end;
+
+
+procedure TForm1_pelayananRI.tampilan_tab;
+begin
+with dataRI do
+begin
+  fdQueryFisik.Close;
+
+  case pageControl1.ActivePageIndex of
+  0 : buka_fisik;
+  end;
+end;
+end;
+
+procedure TForm1_pelayananRI.tampilkan_imunisasi;
+begin
+end;
+
+
+function TForm1_pelayananRI.tindakanDiagnosaTerakhir(idxstr: string): string;
+begin
+Result := '';
+with dataRI do
+begin
+  fdQueryDiagnosaTerakhir.Active := False;
+  fdQueryDiagnosaTerakhir.ParamByName('idxstr').AsString := idxstr;
+  fdQueryDiagnosaTerakhir.Active := True;
+
+  Result := fdQueryDiagnosaTerakhir.FieldByName('id_diag').AsString;
+  fdQueryDiagnosaTerakhir.Active := False;
+end;
+end;
+
+procedure TForm1_pelayananRI.usai_tindakan;
+begin
+end;
+
+end.

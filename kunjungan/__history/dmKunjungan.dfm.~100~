@@ -1,0 +1,286 @@
+object dataKunjungan: TdataKunjungan
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
+  Height = 746
+  Width = 749
+  object fdpgdriver1: TFDPhysPgDriverLink
+    Left = 152
+    Top = 16
+  end
+  object fdCmd1: TFDCommand
+    Connection = FDConnection1
+    Left = 220
+    Top = 16
+  end
+  object fdScript2: TFDScript
+    SQLScripts = <>
+    Connection = FDConnection1
+    Params = <>
+    Macros = <>
+    Left = 288
+    Top = 16
+  end
+  object fdQueryBuka: TFDQuery
+    Connection = FDConnection1
+    Left = 356
+    Top = 16
+  end
+  object fdQueryBankData: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select * from capil.capil_nik_pv where upper(nama_lengkap) like ' +
+        ':paramku or  upper(nama_ayah) like :paramku or '
+      
+        'upper(nama_ibu) like :paramku or nomor_kk like :paramku or nik l' +
+        'ike :paramku')
+    Left = 424
+    Top = 16
+    ParamData = <
+      item
+        Name = 'PARAMKU'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsBankData: TJvDataSource
+    DataSet = fdQueryBankData
+    Left = 492
+    Top = 16
+  end
+  object fdQueryPasienCari: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select * from capil.capil_nik where upper(nama_lengkap) like :pa' +
+        'ramku or  upper(nama_ayah) like :paramku or '
+      
+        'upper(nama_ibu) like :paramku or nomor_kk like :paramku or upper' +
+        '(nik) like :paramku or upper(mr) like :paramku')
+    Left = 16
+    Top = 84
+    ParamData = <
+      item
+        Name = 'PARAMKU'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsPasienCari: TJvDataSource
+    DataSet = fdQueryPasienCari
+    Left = 84
+    Top = 84
+  end
+  object fdSpPvNikPindah: TFDStoredProc
+    Connection = FDConnection1
+    SchemaName = 'capil'
+    StoredProcName = 'nik_pv_pindah'
+    Left = 152
+    Top = 84
+    ParamData = <
+      item
+        Position = 1
+        Name = 'ip_nik'
+        DataType = ftWideString
+        FDDataType = dtWideString
+        ParamType = ptInput
+      end>
+  end
+  object fdSpMrUpdateAuto: TFDStoredProc
+    Connection = FDConnection1
+    SchemaName = 'capil'
+    StoredProcName = 'auto_mr_update'
+    Left = 220
+    Top = 84
+    ParamData = <
+      item
+        Position = 1
+        Name = 'ip_nik'
+        DataType = ftWideString
+        FDDataType = dtWideString
+        ParamType = ptInput
+      end>
+  end
+  object fdQueryKunjungan: TFDQuery
+    SQL.Strings = (
+      'SELECT '
+      '  simpus.pasien_kunjungan.tanggal,'
+      '  simpus.pasien_kunjungan.nomor,'
+      '  simpus.pasien_kunjungan.id_pasien,'
+      '  simpus.pasien_kunjungan.biaya,'
+      '  simpus.pasien_kunjungan.datang_rujukan,'
+      '  simpus.pasien_kunjungan.datang_sebab,'
+      '  simpus.pasien_kunjungan.datang_sebab_ket,'
+      '  simpus.pasien_kunjungan.poli_tujuan,'
+      '  simpus.pasien_kunjungan.tanggal_masuk,'
+      '  simpus.pasien_kunjungan.lama,'
+      '  simpus.pasien_kunjungan.instalasi,'
+      '  simpus.pasien_kunjungan.idxstr,'
+      '  simpus.pasien_kunjungan.sdh_pulang,'
+      '  simpus.pasien_kunjungan.sdh_dilayani,'
+      '  simpus.pasien_kunjungan.tanggal_pulang,'
+      '  simpus.pasien_kunjungan.periksa_fisik,'
+      '  simpus.pasien_kunjungan.jenis_kunjungan,'
+      '  simpus.pasien_kunjungan.farmasi_ok,'
+      '  simpus.pasien_kunjungan.lab_ok,'
+      '  simpus.pasien_kunjungan.bth_lab,'
+      '  simpus.pasien_kunjungan.bpjs_kunjungan,'
+      '  simpus.pasien_kunjungan.bpjs_urut,'
+      '  simpus.pasien_kunjungan.puskesmas,'
+      '  simpus.pasien_kunjungan.lengkap,'
+      '  capil.capil_nik.nama_lengkap,'
+      '  capil.capil_nik.tgl_lahir,'
+      '  capil.capil_nik.kartu_bpjs,'
+      '  capil.capil_nik.mr,'
+      '  simpus.pasien_kunjungan.rm_diambil,'
+      'age(capil.capil_nik.tgl_lahir) as umur'
+      'FROM'
+      '  simpus.pasien_kunjungan'
+      
+        '  INNER JOIN capil.capil_nik ON (simpus.pasien_kunjungan.id_pasi' +
+        'en = capil.capil_nik.idxstr)'
+      ' where '
+      'tanggal = :tanggal and'
+      
+        '(pasien_kunjungan.instalasi = '#39'GAWAT DARURAT'#39' or pasien_kunjunga' +
+        'n.instalasi = '#39'RAWAT JALAN'#39') '
+      'order by nomor')
+    Left = 288
+    Top = 84
+    ParamData = <
+      item
+        Name = 'TANGGAL'
+        DataType = ftDate
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object dsKunjungan: TJvDataSource
+    DataSet = fdQueryKunjungan
+    Left = 356
+    Top = 84
+  end
+  object fdQueryCariMr: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from capil.capil_nik where upper(mr) = upper(:mr)')
+    Left = 424
+    Top = 84
+    ParamData = <
+      item
+        Name = 'MR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryPesertaBpjs: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select * from jkn.peserta where "noKartu" = :noKartu')
+    Left = 492
+    Top = 84
+    ParamData = <
+      item
+        Name = 'NOKARTU'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryAntriAmbil: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'select nomor, id from simpus.antri '
+      'where'
+      'tanggal = :tanggal and loket = 0 and'
+      
+        'nomor = (select min(nomor) from simpus.antri where tanggal = :ta' +
+        'nggal and didaftar = 0 and loket = 0)  ')
+    Left = 592
+    Top = 80
+    ParamData = <
+      item
+        Name = 'TANGGAL'
+        DataType = ftDate
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object fdQueryPkmUnique: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      
+        'select kd_cabang from simpus.puskesmas where adl_aktif = 1 limit' +
+        ' 1')
+    Left = 256
+    Top = 168
+  end
+  object fdQCetak: TFDQuery
+    Connection = FDConnection1
+    SQL.Strings = (
+      'SELECT '
+      '  capil.capil_nik.nik,'
+      '  capil.capil_nik.nama_lengkap,'
+      '  capil.capil_nik.nama_prop,'
+      '  capil.capil_nik.nama_kab,'
+      '  capil.capil_nik.nama_kec,'
+      '  capil.capil_nik.nama_kel,'
+      '  capil.capil_nik.tmpt_lahir,'
+      '  capil.capil_nik.tgl_lahir,'
+      '  capil.capil_nik.jenis_kelamin,'
+      '  capil.capil_nik.gol_drh,'
+      '  capil.capil_nik.alamat,'
+      '  capil.capil_nik.rt,'
+      '  capil.capil_nik.rw,'
+      '  capil.capil_nik.pekerjaan,'
+      '  capil.capil_nik.nama_ibu,'
+      '  capil.capil_nik.nama_ayah,'
+      '  capil.capil_nik.nomor_kk,'
+      '  capil.capil_nik.mr,'
+      '  capil.capil_nik.kartu_bpjs,'
+      '  simpus.puskesmas.nama,'
+      '  capil.capil_nik.biaya,'
+      '  capil.capil_nik.hp,'
+      '  capil.capil_nik.idxstr'
+      'FROM'
+      '  capil.capil_nik'
+      
+        '  INNER JOIN simpus.puskesmas ON (capil.capil_nik.puskesmas = si' +
+        'mpus.puskesmas.kd_cabang)'
+      'WHERE'
+      '  capil.capil_nik.idxstr = :idxstr')
+    Left = 368
+    Top = 176
+    ParamData = <
+      item
+        Name = 'IDXSTR'
+        DataType = ftString
+        ParamType = ptInput
+        Value = Null
+      end>
+  end
+  object FDConnection1: TFDConnection
+    Left = 48
+    Top = 16
+  end
+  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
+    Provider = 'Forms'
+    Left = 496
+    Top = 160
+  end
+  object FDConnection2: TFDConnection
+    Params.Strings = (
+      'Database=simpusclientdbsulang'
+      'User_Name=dkkuser'
+      'Password=nganggodkk'
+      'Server=localhost'
+      'DriverID=PG')
+    LoginPrompt = False
+    Left = 272
+    Top = 248
+  end
+end

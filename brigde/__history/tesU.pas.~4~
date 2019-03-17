@@ -1,0 +1,27 @@
+unit tesU;
+
+interface
+   type
+   tipeClass = class
+     private
+     Ftes : string;
+     public
+     constructor create;
+     destructor destroy;
+     property tes: string  read Ftes write Ftes;
+   end;
+implementation
+
+{ tipeClass }
+
+constructor tipeClass.create;
+begin
+  Ftes := 'awal';
+end;
+
+destructor tipeClass.destroy;
+begin
+  inherited;
+end;
+
+end.

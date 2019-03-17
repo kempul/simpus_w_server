@@ -1,0 +1,90 @@
+unit brProviderU;
+
+interface
+   uses Dialogs, Classes, brCommonsU, System.SysUtils, System.StrUtils;
+type
+
+  brProvider = class(bridgeCommon)
+    private
+    procedure masukkanGetProvider;
+    public
+    function getProvider(mulaiDari : string = '0' ; jumlahData : string = '10') : Boolean;
+    constructor Create;
+    destructor destroy;
+//    property Uri : string;
+  end;
+
+
+implementation
+     uses SynCommons;
+
+{ brProvider }
+
+constructor brProvider.Create;
+begin
+  inherited Create;
+end;
+
+destructor brProvider.destroy;
+begin
+  inherited;
+end;
+
+function brProvider.getProvider(mulaiDari, jumlahData: string): Boolean;
+var sql0, sql1 : string;
+begin
+Result := False;
+parameter_bridging('PROVIDER', 'GET');
+//ShowMessage(uri);
+//Uri := StringReplace( Uri, '{keyword}', kataKunci,  []);
+Uri := StringReplace( Uri, '{start}', mulaiDari,  []);
+Uri := StringReplace(Uri, '{limit}', jumlahData, []);
+//ShowMessage(uri);
+
+Result:= httpGet(uri);
+
+if Result then masukkanGetProvider;
+FDConn.Close;
+end;
+
+procedure brProvider.masukkanGetProvider;
+var dataResp, dataList : Variant;
+    i : Integer;
+    tSl : TStringList;
+    sqlDel0, sqlDel1, sql0, sql1 : string;
+    kdProvider, nmProvider : string;
+//    poliSakit : Boolean;
+begin
+//       ShowMessage('awal masukkan get');
+if logRest('GET', tsResponse.Text) then
+begin
+   sqlDel0 := 'delete from simpus.provider where adl_provider = true;';
+   sql0 := 'insert into simpus.provider(kd_provider, nm_provider) values(%s, %s);';
+   tsL := TStringList.Create;
+   tSl.Add(sqlDel0);
+   try
+   dataResp := _jsonFast(tsResponse.Text);
+// ShowMessage(tsResponse.Text);
+
+   for I := 0 to dataResp.response.list._count - 1 do
+     begin
+       kdProvider := dataResp.response.list.Value(i).kdProvider;
+       nmProvider := dataResp.response.list.Value(i).nmProvider;
+//       ShowMessage('BooltoStr (nonSpesialis, True)');
+//       poliSakit := dataResp.response.list.Value(i).poliSakit;
+//       sqlDel1 := Format(sqlDel0,[QuotedStr(kdProvider)]);
+//       tSl.Add(sqlDel1);
+
+       sql1 := Format(sql0, [QuotedStr(kdProvider), quotedStr(nmProvider)]);
+       tSl.Add(sql1);
+//       showMessage(sqlDel1);
+//       showMessage(sql1);
+     end;
+   finally
+     jalankanScript(tSl);
+     FreeAndNil(tSl);
+   end;
+end;
+end;
+
+end.

@@ -1,0 +1,116 @@
+unit dmPasien;
+
+interface
+
+uses
+  SysUtils, Classes, DB,
+  JvDataSource, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.PG, FireDAC.Phys.PGDef,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.Comp.Client,
+  FireDAC.DApt, FireDAC.Comp.DataSet;
+
+type
+  TdataPasien = class(TDataModule)
+    dsKK: TJvDataSource;
+    dsPasien: TJvDataSource;
+    dsPasien0: TJvDataSource;
+    dsMR: TJvDataSource;
+    dsCetakKartuBerobatPV: TJvDataSource;
+    dsCetakKartuBerobat: TJvDataSource;
+    dsPasienLama: TJvDataSource;
+    fdpgdriver1: TFDPhysPgDriverLink;
+    fdCmd1: TFDCommand;
+    fdQueryKK: TFDQuery;
+    fdQueryPasien: TFDQuery;
+    fdQueryBuka: TFDQuery;
+    fdQueryRm: TFDQuery;
+    fdQueryPuskesmas: TFDQuery;
+    FDConnection1: TFDConnection;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure qKKNewRecord(DataSet: TDataSet);
+    procedure qPasienNewRecord(DataSet: TDataSet);
+    procedure DataModuleDestroy(Sender: TObject);
+  private
+    { Private declarations }
+     SLConn : TStringList;
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getpg;
+    
+  public
+    { Public declarations }
+  end;
+
+var
+  dataPasien: TdataPasien;
+
+implementation
+
+uses kunciu;
+
+{$R *.dfm}
+
+{ TdataPasien }
+
+procedure TdataPasien.DataModuleCreate(Sender: TObject);
+begin
+SLConn := TStringList.Create;
+getpg;
+end;
+
+procedure TdataPasien.DataModuleDestroy(Sender: TObject);
+begin
+FDManager.Active := False;
+SLConn.Free;
+end;
+
+procedure TdataPasien.getpg;
+begin
+//if FDConnection1.Connected then FDConnection1.Connected := false;
+
+//FDConnection1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+//SLConn.Clear;
+SLConn.Add('Server=' + pghost);
+SLConn.Add('Port=' +  pgport);
+SLConn.Add('Database= ' + pgdb);
+SLConn.Add('User_name=' + pguser);
+SLConn.Add('Password=' + pgpasswd);
+//FDConnection1.Params.Add('Port=' + pgport);
+SLConn.Add('Pooled=True');
+
+FDManager.AddConnectionDef('PGPASIEN_CONN', 'PG', SLConn);
+FDManager.Open;
+
+FDConnection1.ConnectionDefName := 'PGPASIEN_CONN';
+//FDConnection1.Params.Add('DriverID=PG');
+end;
+
+procedure TdataPasien.qKKNewRecord(DataSet: TDataSet);
+begin
+DataSet.FieldByName('id_tes').AsInteger := 1;
+DataSet.FieldByName('id_kk').AsString := '0';
+DataSet.FieldByName('kelompok').AsString := '00';
+DataSet.FieldByName('last_update').AsDateTime := Now;
+DataSet.FieldByName('kota').AsString := 'REMBANG';
+DataSet.FieldByName('prop').AsString := 'JAWA TENGAH';
+end;
+
+procedure TdataPasien.qPasienNewRecord(DataSet: TDataSet);
+begin
+DataSet.FieldByName('jenis_kelamin').AsString := 'L';
+DataSet.FieldByName('mr').AsString := '0';
+DataSet.FieldByName('kk').AsString := fdQueryKK.FieldByName('nomor_kk').AsString;
+DataSet.FieldByName('lama').AsInteger := 0;
+DataSet.FieldByName('last_updated').AsDateTime := Now;
+DataSet.FieldByName('status_keluarga').AsString := 'KK';
+DataSet.FieldByName('status_keluarga_ke').AsInteger := 1;
+end;
+
+end.

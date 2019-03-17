@@ -1,0 +1,103 @@
+unit dmProlanis;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.PG,
+  FireDAC.Phys.PGDef, FireDAC.VCLUI.Wait, FireDAC.Comp.UI, Data.DB,
+  FireDAC.Comp.Client, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
+  FireDAC.DApt, JvDataSource, FireDAC.Comp.DataSet;
+
+type
+  TdataProlanis = class(TDataModule)
+    FDConnection1: TFDConnection;
+    fdgxwtcrsr1: TFDGUIxWaitCursor;
+    fdQ1Kelompok: TFDQuery;
+    ds1Kelompok: TJvDataSource;
+    fdQBuka: TFDQuery;
+    fdQ1JenisProgram: TFDQuery;
+    ds1JenisProgram: TJvDataSource;
+    fdQKegiatan: TFDQuery;
+    dsKegiatan: TJvDataSource;
+    fdQPeserta: TFDQuery;
+    dsPeserta: TJvDataSource;
+    fdQLUKelompok: TFDQuery;
+    dsLUKelompok: TJvDataSource;
+    fdQLUJnsKegiatan: TFDQuery;
+    dsLUJnsKegiatan: TJvDataSource;
+    fdQPasien: TFDQuery;
+    dsPasien: TJvDataSource;
+    fdQPesertaAdding: TFDQuery;
+    dsPesertaAdding: TJvDataSource;
+    fdCmd1: TFDCommand;
+    fdQPesertaTerakhir: TFDQuery;
+    fdQKegiatanTerakhir: TFDQuery;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure DataModuleDestroy(Sender: TObject);
+  private
+    { Private declarations }
+     SLConn : TStringList;
+     pghost, pgport, pgdb, pguser, pgpasswd : string;
+     procedure getDB;
+
+  public
+    { Public declarations }
+  end;
+
+var
+  dataProlanis: TdataProlanis;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+uses Vcl.Dialogs;
+
+{ TdataProlanis }
+
+procedure TdataProlanis.DataModuleCreate(Sender: TObject);
+begin
+SLConn := TStringList.Create;
+getpg;
+
+end;
+
+procedure TdataProlanis.DataModuleDestroy(Sender: TObject);
+begin
+FDManager.Active := False;
+SLConn.Free;
+end;
+
+procedure TdataProlanis.getDB;
+begin
+//if FDConnection1.Connected then FDConnection1.Connected := false;
+//FDConnection1.AutoReconnect := False;
+pghost:=form1_kunci.pghost;
+pgport := Form1_kunci.pgport;
+pgdb:=form1_kunci.pgdb;
+pguser:=form1_kunci.pguser;
+pgpasswd:=form1_kunci.pgpasswd;
+
+
+//FDConnection1.Params.Clear;
+//SLConn.Add('DriverID=PG');
+
+
+  SLConn.Add('Server=' + pghost);
+  SLConn.Add('Port=' +  pgport);
+  SLConn.Add('Database= ' + pgdb);
+  SLConn.Add('User_name=' + pguser);
+  SLConn.Add('Password=' + pgpasswd);
+  SLConn.Add('Pooled=True');
+
+  fdManager.AddConnectionDef('PGMASTER_CONN', 'PG', SLConn, False);
+  fdManager.Active := True;
+  FDConnection1.ConnectionDefName := 'PGMASTER_CONN';
+  FDConnection1.Connected := True;
+
+end;
+
+end.

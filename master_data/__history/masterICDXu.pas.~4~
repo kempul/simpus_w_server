@@ -1,0 +1,130 @@
+unit masterICDXu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, frxClass, frxDBSet, JvComponentBase, JvFormPlacement,
+  JvTimer, ExtCtrls, JvExExtCtrls, JvBevel, JvButton, JvTransparentButton,
+  DBCtrls, JvDBControls, Grids, DBGrids, JvExDBGrids, JvDBGrid, JvDBUltimGrid,
+  JvExControls, JvLabel, StdCtrls, JvExStdCtrls, JvCombobox, Mask, JvExMask,
+  JvSpin, JvExtComponent, JvPanel, Buttons, DB, GridsEh, DBGridEh,
+  DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DBAxisGridsEh, DynVarsEh,
+  EhLibVCL;
+
+type
+  TForm1_masterICDX = class(TForm)
+    panelUtama: TJvPanel;
+    JvPanel1: TJvPanel;
+    JvSpinEdit1: TJvSpinEdit;
+    JvComboBox1: TJvComboBox;
+    panelUtama1: TJvPanel;
+    nav1: TJvDBNavigator;
+    JvPanel2: TJvPanel;
+    JvTransparentButton1: TJvTransparentButton;
+    JvLabel2: TJvLabel;
+    JvBevel1: TJvBevel;
+    panelMenu: TJvPanel;
+    btn_close: TJvTransparentButton;
+    btn_mutasi: TJvTransparentButton;
+    btn_cetak: TJvTransparentButton;
+    btn_jaminan: TJvTransparentButton;
+    btn_pakandikandang: TJvTransparentButton;
+    frxDBDataset1: TfrxDBDataset;
+    frxReport1: TfrxReport;
+    grid1: TDBGridEh;
+    procedure btn_closeClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure nav1Click(Sender: TObject; Button: TNavigateBtn);
+  private
+    { Private declarations }
+    procedure awal;
+    procedure buka_data;
+    procedure isi_list(aQuery : string; aField : string; aNomorKolom : Integer; aGrid : TDBGridEh); 
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_masterICDX: TForm1_masterICDX;
+
+implementation
+
+uses dmMaster, aau, aau111, brDiagnosaU;
+
+{$R *.dfm}
+
+{ TForm1_satuan }
+
+procedure TForm1_masterICDX.awal;
+begin
+grid1.RestoreColumnsLayoutIni(Form111.MyIni, Name, [crpColWidthsEh]);
+buka_data;
+end;
+
+procedure TForm1_masterICDX.btn_closeClick(Sender: TObject);
+begin
+grid1.SaveColumnsLayoutIni(form111.MyIni, name, true);
+
+dataMaster.FDConnection1.Connected:=False;
+//showMessage('ctcp : 0');
+Form1_aa.PipeClient1.SendMessage('0');
+end;
+
+procedure TForm1_masterICDX.buka_data;
+begin
+with dataMaster do
+begin
+  FDConnection1.Connected := false;
+  fdQueryMasterICDX.Open;
+end;
+
+//isi_list('select poli from simpus2.m_poli order by upper(poli)', 'poli', 5, grid1);
+end;
+
+procedure TForm1_masterICDX.FormShow(Sender: TObject);
+begin
+awal;
+end;
+
+procedure TForm1_masterICDX.isi_list(aQuery, aField: string;
+  aNomorKolom: Integer; aGrid: TDBGridEh);
+begin
+with dataMaster do
+begin
+  fdQueryBuka.Close;
+  fdQueryBuka.SQL.Clear;
+  fdQueryBuka.SQL.Add(aQuery);
+  fdQueryBuka.Open;
+
+  aGrid.Columns[aNomorKolom].PickList.Clear;
+  while not fdQueryBuka.Eof do
+  begin
+    aGrid.Columns[aNomorKolom].PickList.Add(fdQueryBuka.FieldByName(aField).AsString);
+    fdQueryBuka.Next;
+  end;
+  fdQueryBuka.Close;
+end;
+end;
+
+procedure TForm1_masterICDX.nav1Click(Sender: TObject; Button: TNavigateBtn);
+  var apv : string;
+begin
+
+if Button in [ nbInsert, nbEdit] then
+begin
+  grid1.Options := grid1.Options + [dgEditing] - [dgRowSelect];
+end;
+
+if Button = nbRefresh then
+begin
+  apv := dataMaster.fdQueryMasterICDX.FieldByName('kode').AsString;
+  grid1.Options := grid1.Options - [dgEditing] + [dgRowSelect];
+  buka_data;
+  dataMaster.fdQueryMasterICDX.Locate('kode', apv, []);
+end;
+
+
+end;
+
+end.

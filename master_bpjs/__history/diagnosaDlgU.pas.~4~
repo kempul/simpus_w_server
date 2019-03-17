@@ -1,0 +1,38 @@
+unit diagnosaDlgU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Samples.Spin, Vcl.StdCtrls;
+
+type
+  TForm1_diagnosaDlg = class(TForm)
+    labelDiagnosa: TLabel;
+    editDiagnosa: TEdit;
+    seStart: TSpinEdit;
+    labelStart: TLabel;
+    labelLimit: TLabel;
+    seLimit: TSpinEdit;
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_diagnosaDlg: TForm1_diagnosaDlg;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1_diagnosaDlg.FormShow(Sender: TObject);
+begin
+editDiagnosa.Clear;
+seStart.Value := 0;
+seLimit.Value := 10;
+end;
+
+end.

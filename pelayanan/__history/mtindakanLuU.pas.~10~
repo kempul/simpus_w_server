@@ -1,0 +1,49 @@
+unit mtindakanLuU;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, DBGridEhGrouping,
+  ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, EhLibVCL, GridsEh, DBAxisGridsEh,
+  DBGridEh, dmpelayanan, Vcl.StdCtrls, Vcl.Buttons;
+
+type
+  TForm1_tindakanLU = class(TForm)
+    panel2: TPanel;
+    grid1: TDBGridEh;
+    btnOK: TBitBtn;
+    btnCancel: TBitBtn;
+    btn1: TButton;
+    procedure btnCancelClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1_tindakanLU: TForm1_tindakanLU;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1_tindakanLU.btnCancelClick(Sender: TObject);
+begin
+dataPelayanan.fdQueryMTindakanLU.Close;
+Close;
+end;
+
+procedure TForm1_tindakanLU.FormShow(Sender: TObject);
+begin
+with dataPelayanan do
+begin
+  fdQueryMTindakanLU.Close;
+  fdQueryMTindakanLU.Active := True;
+  grid1.SetFocus;
+end;
+end;
+
+end.
